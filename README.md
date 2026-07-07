@@ -19,7 +19,7 @@
 
 ```bash
 # 安装依赖
-pip install pillow numpy numba
+pip install pillow numpy numba matplotlib
 
 # 启动 GUI（15种模式）
 python triangle_pixel_gui.py
@@ -27,6 +27,9 @@ python triangle_pixel_gui.py
 # 或跑完整 demo
 python demo.py
 ```
+
+> **论文**: [arxiv_submission/](arxiv_submission/) — 上传 `overleaf_upload.zip` 到 [Overleaf](https://overleaf.com) 直接编译
+> **代码**: [github.com/kieran576/triangle-pixel](https://github.com/kieran576/triangle-pixel)
 
 ## 系统架构
 
