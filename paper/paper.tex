@@ -43,7 +43,7 @@ We propose a sensor topology addressing both problems: photodiodes on an equilat
 \begin{enumerate}[nosep]
 \item \textbf{Zero-latency perception.} Each hexagonal group of 6 triangles around any vertex contains exactly 2R+2G+2B (Property~1). With no computation, the raw sensor output produces a perceptually full-color image---enabling instant color-based decision-making directly from the sensor, without an ISP.
 \item \textbf{Measurement fidelity.} Every triangle captures one ground-truth channel value at its exact position. Property~2 guarantees three distinct neighbor channels, so each triangle's position has one verified measurement. Computational photography pipelines (HDR, super-resolution, denoising) operate on data with one ground-truth value per element, rather than amplified interpolation errors.
-\item \textbf{Geometric structure.} The lattice has 6-fold rotational symmetry (vs.\ 4-fold), providing near-isotropic response (2.1~dB anisotropy). Sierpinski self-similarity enables natural multi-scale pyramids. Triangular faces map directly to 3D mesh surfaces.
+\item \textbf{Geometric structure.} The lattice has 6-fold rotational symmetry (vs.\ 4-fold), providing near-isotropic response (2.1~dB anisotropy). Sierpinski self-similarity enables natural multi-scale pyramids. Triangular faces map directly to 3D mesh surfaces, and sensor-display co-design with matched triangular layouts eliminates the entire format-conversion chain (\Sef{sec:display}).
 \end{enumerate}
 
 Fujifilm's X-Trans~\cite{fujifilm2012}, Foveon X3~\cite{hubel2004}, and learned demosaicing~\cite{gharbi2016} improve upon Bayer but retain rectangular grids---they cannot exploit hexagonal color balance for zero-latency perception.
@@ -319,6 +319,10 @@ At equivalent data rates (both RAW: 8 bits/pixel), the triangular sensor achieve
 \item \textbf{Physical fabrication:} All results are simulated. Fabricating a triangular CMOS sensor presents challenges: triangular photodiodes have lower fill factor than rectangular ones (corner regions are inefficient), microlens design for non-rectangular pixels is non-standard, and column-parallel ADC readout requires adapting row/column addressing to a triangular lattice. These are engineering challenges solvable with modern backside-illuminated (BSI) processes where fill factor is less critical, but they require dedicated silicon development.
 \item \textbf{Physical validation:} All results are simulation; a physical triangular CMOS sensor is needed.
 \end{itemize}
+
+\subsection{Triangular Display Integration}\label{sec:display}
+
+The zero-latency advantage is maximized when both the sensor and the display share the triangular grid geometry. If the display panel also uses a triangular sub-pixel layout matching the sensor's 6-triangle hexagonal groups, the raw sensor data can be displayed directly without any format conversion---each sensor triangle drives its corresponding display triangle 1:1. The 2R+2G+2B hexagon on the sensor maps identically to a 2R+2G+2B hexagon on the display, eliminating demosaicing, resampling, and color-space conversion from the signal chain entirely. Triangular sub-pixel layouts exist in some OLED panels (e.g., Samsung Diamond Pixel), though with different geometry; a sensor-matched triangular display would close the loop for truly zero-computation end-to-end imaging. This sensor-display co-design is particularly relevant for AR/VR passthrough systems where latency directly causes motion sickness.
 
 \subsection{Future Work}
 
