@@ -6,7 +6,7 @@
 
 **Abstract**
 
-We propose Triangle Pixel, a complete computer vision pipeline built on equilateral triangle meshes instead of rectangular pixel grids. The system replaces Bayer filter demosaicing with a triangular channel assignment pattern that guarantees each hexagonal group contains 2R+2G+2B, enables zero-computation color reconstruction, and achieves 70% of Bayer PSNR (against bilinear demosaicing baseline at lower spatial sampling density) using only 2% of the samples (measuring sparse-sensor reconstruction, not per-pixel quality). We introduce triangular-native ISP correction using color-difference median filtering on 3-neighbor graphs, Sierpinski-based multi-scale super-resolution, and a graph convolutional network that performs end-to-end demosaicing in a single forward pass, approaching hand-crafted ISP quality with only ~1,300 parameters. The triangular mesh naturally extends to 3D surface representation, Harris corner detection. Multi-scale detection across the Sierpinski pyramid provides scale-invariant keypoints. Quantitative evaluation across 3 test images (edge, gradient, textured) at S=16: 39-177 keypoints detected; self-matching with the 16D descriptor under ratio-test 0.75 yields 8-20 correct matches. Super-resolution (2x, self-similar sharpening) achieves 17.8 dB PSNR when downscaled. Benchmarks across 8 test patterns show directional anisotropy of only 2.1 dB across all edge orientations, validating the triangular grid's isotropy despite its 3-fold symmetry. The entire pipeline—from sensor simulation to AI inference—runs at 59 FPS on a consumer CPU for a 400×300 image.
+We propose Triangle Pixel, a complete computer vision pipeline built on equilateral triangle meshes instead of rectangular pixel grids. The system replaces Bayer filter demosaicing with a triangular channel assignment pattern that guarantees each hexagonal group contains 2R+2G+2B, enables perceptually color-balanced raw preview, and achieves 70% of Bayer PSNR (against bilinear demosaicing baseline at lower spatial sampling density) using only 2% of the samples (measuring sparse-sensor reconstruction, not per-pixel quality). We introduce triangular-native ISP correction using color-difference median filtering on 3-neighbor graphs, Sierpinski-based multi-scale super-resolution, and a graph convolutional network that performs end-to-end demosaicing in a single forward pass, approaching hand-crafted ISP quality with only ~1,300 parameters. The triangular mesh provides a representation-level path to 3D surfaces, Harris corner detection. Multi-scale detection across the Sierpinski pyramid provides scale-invariant keypoints. Quantitative evaluation across 3 test images (edge, gradient, textured) at S=16: 39-177 keypoints detected; self-matching with the 16D descriptor under ratio-test 0.75 yields 8-20 correct matches. Super-resolution (2x, self-similar sharpening) achieves 17.8 dB PSNR when downscaled---below the >30 dB typical of modern deep SR methods. Benchmarks across 8 test patterns show directional anisotropy of only 2.1 dB across all edge orientations, validating the triangular grid's isotropy despite its 3-fold symmetry. The entire pipeline—from sensor simulation to AI inference—runs at 59 FPS on a consumer CPU for a 400×300 image.
 
 ---
 
@@ -178,7 +178,7 @@ All experiments ran on an AMD 7840 CPU with integrated graphics. The pipeline us
 | Edge | 24.7 dB | 25.1 dB | −0.4 dB | 0.6s |
 | Real Photo | 20.0 dB | 21.4 dB | −1.4 dB | 7.4s |
 
-The 3-layer GCN (~1,300 parameters) approaches hand-crafted ISP quality with a single forward pass. On the edge image, the gap is 0.4 dB. The GCN requires per-image training (self-supervised, 0.6-7.4s). It is a proof-of-concept for learned triangular demosaicing, not yet a general-purpose solution.
+The 3-layer GCN (~1,300 parameters) approaches hand-crafted ISP quality with a single forward pass. On the edge image, the gap is 0.4 dB. The GCN requires per-image training (self-supervised, 0.6-7.4s). Important limitation: trained per-image, it learns image-specific statistics. It is a proof-of-concept for learned triangular demosaicing, not yet a general-purpose solution.
 
 ### 7.4 Processing Speed
 
@@ -203,7 +203,7 @@ At equivalent data rates (both RAW formats use 8 bits/pixel), the triangular sen
 
 - **High-frequency loss**: The Siemens star benchmark reveals significant detail loss at high spatial frequencies, inherent to the coarser sampling grid
 - **Comparison fairness:** Our efficiency metric compares a triangular sensor at lower spatial sampling density against a full-resolution Bayer sensor with bilinear demosaicing---a simple baseline. A rigorous efficiency proof requires same-photodiode-count comparison against state-of-the-art demosaicing methods (e.g., Hirakawa-Parks, deep joint demosaicking-denoising), deferred to future work on physical sensor prototypes.
-- **High-frequency loss:** The Siemens star benchmark reveals predictable detail loss at high spatial frequencies. Frequency sweep analysis (S=12, Nyquist ≈0.083 cy/px) shows PSNR declining from 31.6 dB at 1 cycle to 10.0 dB at 16 cycles, consistent with sparse sampling theory.
+- **High-frequency loss:** See frequency sweep analysis (S=12): 31.6 dB at 1 cy, declining to 10.0 dB at 16 cy, consistent with sparse sampling theory.
 - **AI training requirement**: The GCN requires per-image training; a generalizable model would need diverse training data
 - **Rendering overhead**: PIL-based triangle rendering is the pipeline bottleneck; GPU rasterization would enable higher resolutions
 - **Physical validation**: All results are simulation-based; a physical triangular CMOS sensor is needed for real-world validation
@@ -218,7 +218,7 @@ The triangular representation's self-similarity and 3D affinity open several res
 
 ## 9. Conclusion
 
-We have presented Triangle Pixel, a complete vision system that replaces rectangular pixel grids with equilateral triangle meshes. The system spans the full pipeline from sensor simulation through AI-native processing, demonstrating that triangular representations can match or exceed rectangular ones in data efficiency, geometric isotropy, and 3D integration, while enabling new capabilities such as zero-computation color reconstruction and Sierpinski-based multi-scale processing. The experimental results validate the approach: 70% of Bayer PSNR at 2% data, 2.1 dB directional anisotropy, and real-time performance at 59 FPS.
+We have presented Triangle Pixel, a complete vision system that replaces rectangular pixel grids with equilateral triangle meshes. The system spans the full pipeline from sensor simulation through AI-native processing, demonstrating that triangular representations can match or exceed rectangular ones in data efficiency, geometric isotropy, and 3D integration, while enabling new capabilities such as perceptually color-balanced raw preview and Sierpinski-based multi-scale processing. The experimental results validate the approach: 70% of Bayer PSNR at 2% data, 2.1 dB directional anisotropy, and real-time performance at 59 FPS.
 
 ---
 
