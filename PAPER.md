@@ -198,6 +198,8 @@ At equivalent data rates (both RAW formats use 8 bits/pixel), the triangular sen
 ### 8.2 Limitations
 
 - **High-frequency loss**: The Siemens star benchmark reveals significant detail loss at high spatial frequencies, inherent to the coarser sampling grid
+- **Comparison fairness:** Our efficiency metric compares a triangular sensor at lower spatial sampling density against a full-resolution Bayer sensor with bilinear demosaicing---a simple baseline. A rigorous efficiency proof requires same-photodiode-count comparison against state-of-the-art demosaicing methods (e.g., Hirakawa-Parks, deep joint demosaicking-denoising), deferred to future work on physical sensor prototypes.
+- **High-frequency loss:** The Siemens star benchmark reveals predictable detail loss at high spatial frequencies. Frequency sweep analysis (S=12, Nyquist ≈0.083 cy/px) shows PSNR declining from 31.6 dB at 1 cycle to 10.0 dB at 16 cycles, consistent with sparse sampling theory.
 - **AI training requirement**: The GCN requires per-image training; a generalizable model would need diverse training data
 - **Rendering overhead**: PIL-based triangle rendering is the pipeline bottleneck; GPU rasterization would enable higher resolutions
 - **Physical validation**: All results are simulation-based; a physical triangular CMOS sensor is needed for real-world validation
