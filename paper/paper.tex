@@ -167,7 +167,7 @@ The 3-neighbor median filter is crucial: it removes isolated zipper artifacts th
 
 \subsection{AI End-to-End Demosaicing}
 
-We train a 3-layer Graph Convolutional Network to replace both borrow and ISP with a single forward pass:
+We train a 3-layer Graph Convolutional Network~\cite{kipf2017} to replace both borrow and ISP with a single forward pass:
 
 \begin{equation}
 \mathbf{h}^{(l+1)} = \text{ReLU}\!\left(\!\frac{\mathbf{X}^{(l)} + \text{mean}_{j\in\mathcal{N}(i)}\mathbf{X}^{(l)}_j}{2} \mathbf{W}^{(l)} + \mathbf{b}^{(l)}\!\right)
