@@ -51,6 +51,13 @@ Fujifilm's X-Trans~\cite{fujifilm2012}, Foveon X3~\cite{hubel2004}, and learned 
 
 We present a complete vision pipeline---from sensor simulation through zero-latency perception, image reconstruction, edge detection, feature matching, 3D mesh generation, to AI-native processing---all operating on the triangular mesh. Figure~\ref{fig:arch} illustrates the system.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{fig6_arch.pdf}
+\caption{System architecture. The triangular pipeline (left) compared against traditional Bayer processing (right).}
+\label{fig:arch}
+\end{figure}
+
 \section{Triangular Grid Geometry}
 %-------------------------------------------------------------------------
 
@@ -332,6 +339,10 @@ The zero-latency advantage is maximized when both the sensor and the display sha
 \item Video pipeline: Temporal consistency across triangular frames.
 \item Learned super-resolution: Training larger GCNs on the Sierpinski pyramid.
 \item Triangular SLAM: Direct 3D reconstruction from triangular keypoints.
+\end{itemize}
+
+\subsection{Reproducibility}
+The complete pipeline---sensor simulator, reconstruction algorithms, CV primitives, and GCN training---is available as open-source Python code at \url{https://github.com/kieran576/triangle-pixel}.
 \end{itemize}
 
 %-------------------------------------------------------------------------
