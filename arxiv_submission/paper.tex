@@ -35,7 +35,7 @@ We propose Triangle Pixel, a complete computer vision pipeline built on equilate
 \section{Introduction}
 %-------------------------------------------------------------------------
 
-Modern digital cameras universally employ the Bayer color filter array~\cite{bayer1976}, a $2\times2$ repeating pattern of red, green, and blue filters over a rectangular photodiode grid. Despite its ubiquity, the Bayer pattern imposes fundamental constraints: only one-quarter of pixels capture red or blue light (vs. 50\% green), requiring computationally expensive demosaicing that introduces color artifacts at edges~\cite{hamilton1997}; the rectangular grid has anisotropic sampling with only 4-fold rotational symmetry; and the resulting RGB representation is tightly coupled to 2D imaging, making 3D integration cumbersome.
+Modern digital cameras universally employ the Bayer color filter array~\cite{bayer1976}, a $2\times2$ repeating pattern of red, green, and blue filters over a rectangular photodiode grid. Despite its ubiquity, the Bayer pattern imposes fundamental constraints: only one-quarter of pixels capture red or blue light (vs. 50\% green), requiring computationally expensive demosaicing that introduces color artifacts at edges~\cite{hamilton1997}; the rectangular grid has anisotropic sampling with only 4-fold rotational symmetry; and the resulting RGB representation is tightly coupled to 2D imaging, making 3D integration cumbersome. While hexagonal sampling is well-studied in signal processing for optimal isotropy, triangular grids inherit this property while adding direct 3D mesh compatibility: each triangle face is a native 3D graphics primitive.
 
 Alternative sensor layouts have been explored: Fujifilm's X-Trans~\cite{fujifilm2012} uses a $6\times6$ pseudo-random pattern to reduce moir\'e; Foveon X3~\cite{hubel2004} stacks photodiodes vertically for per-pixel full color, at the cost of light efficiency. Both retain rectangular grids. Learned demosaicing~\cite{gharbi2016} improves reconstruction but adds computation.
 
@@ -98,7 +98,7 @@ Color filters are assigned in a repeating 6-column pattern (Fig.~\ref{fig:channe
 Any 6 triangles surrounding a common vertex form a regular hexagon containing exactly 2R + 2G + 2B.
 \end{property}
 
-\begin{proof}
+\begin{proof}[Empirical Verification]
 Empirically verified on all interior vertices (72/72, 10$\times$18 grid) and across 5 Sierpinski subdivision levels (11,346 hexagonal groups at 100\% accuracy). The period-6 modular arithmetic of the channel assignment guarantees this property (a formal proof by induction on the grid coordinates is straightforward but omitted for brevity; empirical verification suffices for this exploratory paper).
 \end{proof}
 
@@ -106,7 +106,7 @@ Empirically verified on all interior vertices (72/72, 10$\times$18 grid) and acr
 For any interior triangle, its three edge-sharing neighbors possess three distinct color channels $\{R, G, B\}$.
 \end{property}
 
-\begin{proof}
+\begin{proof}[Empirical Verification]
 A case analysis over $c \bmod 6$ and $r \bmod 2$ (12 total cases) confirms the three neighbor channels are always $\{0,1,2\}$. Empirically verified on all 1,624 interior triangles of a $30\times60$ grid.
 \end{proof}
 
