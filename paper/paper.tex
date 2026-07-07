@@ -211,7 +211,7 @@ The Harris response $R = \det(M) - k \cdot \text{tr}(M)^2$ detects corners on th
 
 \subsection{Rotation-Invariant Descriptor}
 
-The 16-dimensional descriptor is preliminary: its 1-ring support provides limited discriminability, and discrete 3-fold rotation invariance does not match the continuous invariance of orientation histograms. Matching experiments show 8--20 correct self-matches on textured images under ratio-test 0.75---below the hundreds typical of SIFT, reflecting both the small support and the absence of a scale-space extrema detector.
+The 16-dimensional descriptor is preliminary: its 1-ring support provides limited discriminability, and discrete 3-fold rotation invariance does not match the continuous invariance of orientation histograms. The rotation normalization assumes the dominant gradient aligns with one of three edge directions---valid for grid-aligned features but fragile under arbitrary rotations. Matching experiments show 8--20 correct self-matches on textured images under ratio-test 0.75---below the hundreds typical of SIFT, reflecting both the small support and the absence of a scale-space extrema detector.
 
 %-------------------------------------------------------------------------
 \section{3D Unification}
@@ -323,6 +323,7 @@ At equivalent data rates (both RAW: 8 bits/pixel), the triangular sensor achieve
 \item \textbf{High-frequency loss:} The Siemens star benchmark reveals predictable detail loss at high spatial frequencies. Frequency sweep analysis (S=12, Nyquist $\approx$0.083 cy/px) shows PSNR declining from 31.6~dB at 1~cycle to 10.0~dB at 16~cycles, consistent with sparse sampling theory.
 \item \textbf{AI training:} The GCN requires per-image training; a generalizable model needs diverse data.
 \item \textbf{Rendering:} PIL-based triangle rendering is the bottleneck; GPU rasterization would enable higher resolutions.
+\item \textbf{Physical fabrication:} All results are simulated. Fabricating a triangular CMOS sensor presents challenges: triangular photodiodes have lower fill factor than rectangular ones (corner regions are inefficient), microlens design for non-rectangular pixels is non-standard, and column-parallel ADC readout requires adapting row/column addressing to a triangular lattice. These are engineering challenges solvable with modern backside-illuminated (BSI) processes where fill factor is less critical, but they require dedicated silicon development.
 \item \textbf{Physical validation:} All results are simulation; a physical triangular CMOS sensor is needed.
 \end{itemize}
 
