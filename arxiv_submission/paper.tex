@@ -29,14 +29,14 @@ Kieran Wang\\
 \maketitle
 
 \begin{abstract}
-We propose Triangle Pixel, a complete computer vision pipeline built on equilateral triangle meshes instead of rectangular pixel grids. The system replaces Bayer filter demosaicing with a triangular channel assignment pattern that guarantees each hexagonal group contains 2R+2G+2B, enables zero-computation color reconstruction, and achieves 70\% of Bayer PSNR using only 2\% of the data. We introduce triangular-native ISP correction using color-difference median filtering on 3-neighbor graphs, Sierpinski-based multi-scale super-resolution, and a graph convolutional network (GCN) that performs end-to-end demosaicing in a single forward pass. The triangular mesh extends to 3D surface representation, Harris corner detection on 3-directional gradients, and rotation-invariant feature descriptors. Benchmarks show directional anisotropy of only 2.1~dB across all edge orientations. The pipeline runs at 59~FPS on a consumer CPU.
+We propose Triangle Pixel, a complete computer vision pipeline built on equilateral triangle meshes instead of rectangular pixel grids. The system replaces Bayer filter demosaicing with a triangular channel assignment pattern that guarantees each hexagonal group contains 2R+2G+2B, enables zero-computation color reconstruction, and achieves 70\% of Bayer PSNR using only 2\% of the data. We introduce triangular-native ISP correction using color-difference median filtering on 3-neighbor graphs, Sierpinski-based multi-scale super-resolution, and a graph convolutional network (GCN) that performs end-to-end demosaicing in a single forward pass. The triangular mesh extends to 3D surface representation, Harris corner detection on 3-directional gradients, and rotation-invariant feature descriptors. Benchmarks show directional anisotropy of only 2.1~dB across all edge orientations. The full pipeline runs at 59~FPS on a consumer CPU for a 400$\times$400 image at S=16 (1,219 triangles).
 \end{abstract}
 
 %-------------------------------------------------------------------------
 \section{Introduction}
 %-------------------------------------------------------------------------
 
-Modern digital cameras universally employ the Bayer color filter array~\cite{bayer1976}, a $2\times2$ repeating pattern of red, green, and blue filters over a rectangular photodiode grid. Despite its ubiquity, the Bayer pattern imposes fundamental constraints: only one-third of pixels capture red or blue light, requiring computationally expensive demosaicing that introduces color artifacts at edges~\cite{hamilton1997}; the rectangular grid has anisotropic sampling with only 4-fold rotational symmetry; and the resulting RGB representation is tightly coupled to 2D imaging, making 3D integration cumbersome.
+Modern digital cameras universally employ the Bayer color filter array~\cite{bayer1976}, a $2\times2$ repeating pattern of red, green, and blue filters over a rectangular photodiode grid. Despite its ubiquity, the Bayer pattern imposes fundamental constraints: only one-quarter of pixels capture red or blue light (vs. 50\% green), requiring computationally expensive demosaicing that introduces color artifacts at edges~\cite{hamilton1997}; the rectangular grid has anisotropic sampling with only 4-fold rotational symmetry; and the resulting RGB representation is tightly coupled to 2D imaging, making 3D integration cumbersome.
 
 We propose an alternative sensor topology: photodiodes arranged on an equilateral triangular lattice, with a 6-triangle repeating color filter assignment that naturally balances all three channels. This arrangement provides three key advantages:
 
@@ -50,7 +50,7 @@ We present a complete vision pipeline---from sensor simulation through image rec
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figs/fig6_arch.pdf}
+\includegraphics[width=\columnwidth]{fig6_arch.pdf}
 \caption{System architecture. The triangular pipeline (left) is compared against traditional Bayer processing (right).}
 \label{fig:arch}
 \end{figure}
@@ -79,7 +79,7 @@ Figure~\ref{fig:grid} shows the triangular grid geometry.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.85\columnwidth]{figs/fig1_grid.pdf}
+\includegraphics[width=0.85\columnwidth]{fig1_grid.pdf}
 \caption{Equilateral triangle tiling. $\triangle$ and $\triangledown$ alternate in a checkerboard pattern. Each triangle connects to exactly 3 neighbors.}
 \label{fig:grid}
 \end{figure}
@@ -109,7 +109,7 @@ Theorem~2 guarantees that the neighbor-borrowing reconstruction (Section~\ref{se
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figs/fig2_channels.pdf}
+\includegraphics[width=\columnwidth]{fig2_channels.pdf}
 \caption{Channel assignment pattern. The dashed hexagon highlights a 6-triangle group with 2R+2G+2B. Even rows follow RGBBGR, odd rows BGRRGB.}
 \label{fig:channels}
 \end{figure}
@@ -171,7 +171,7 @@ We train a 3-layer Graph Convolutional Network to replace both borrow and ISP wi
 \mathbf{h}^{(l+1)} = \text{ReLU}\!\left(\!\frac{\mathbf{X}^{(l)} + \text{mean}_{j\in\mathcal{N}(i)}\mathbf{X}^{(l)}_j}{2} \mathbf{W}^{(l)} + \mathbf{b}^{(l)}\!\right)
 \end{equation}
 
-The GCN operates on the triangular mesh's natural adjacency (exactly 3 neighbors per node). Input: $[\text{value}/255, \mathbb{1}_R, \mathbb{1}_G, \mathbb{1}_B]$ (4D). Output: $[R, G, B] \in [0,1]$ (3D). Architecture: 4$\to$32$\to$32$\to$3, trained with MSE loss and Adam optimizer on sensor simulator-generated (noisy RAW, clean RGB) pairs. The model has only 2,500 parameters and trains in 0.6 seconds.
+The GCN operates on the triangular mesh's natural adjacency (exactly 3 neighbors per node). Input: $[\text{value}/255, \mathbb{1}_R, \mathbb{1}_G, \mathbb{1}_B]$ (4D). Output: $[R, G, B] \in [0,1]$ (3D). Architecture: 4$\to$32$\to$32$\to$3, trained with MSE loss and Adam optimizer on sensor simulator-generated (noisy RAW, clean RGB) pairs. The model has only $\sim$1,300 parameters and trains in 0.6 seconds on a 400$\times$400 image.
 
 %-------------------------------------------------------------------------
 \section{Multi-Scale Processing}
@@ -251,7 +251,7 @@ Siemens Star & 14.6 dB & 0.477 & 22.2 dB \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figs/fig3_sensor_bars.pdf}
+\includegraphics[width=\columnwidth]{fig3_sensor_bars.pdf}
 \caption{PSNR comparison across test images. Triangle (S=12) uses 2\% of Bayer's pixel count.}
 \label{fig:sensor}
 \end{figure}
@@ -266,7 +266,7 @@ Siemens Star & 14.6 dB & 0.477 & 22.2 dB \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.85\columnwidth]{figs/fig4_anisotropy.pdf}
+\includegraphics[width=0.85\columnwidth]{fig4_anisotropy.pdf}
 \caption{Directional anisotropy radar chart. Triangle PSNR varies by only 2.1~dB across all edge orientations (Bayer: 0.1~dB).}
 \label{fig:aniso}
 \end{figure}
@@ -297,7 +297,7 @@ S=32 & 336 & 5 ms & 203 \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figs/fig5_ai_speed.pdf}
+\includegraphics[width=\columnwidth]{fig5_ai_speed.pdf}
 \caption{Left: GCN vs ISP PSNR comparison. Right: Pipeline throughput vs triangle size.}
 \label{fig:ai}
 \end{figure}
@@ -336,7 +336,7 @@ We presented Triangle Pixel, a complete vision system replacing rectangular pixe
 
 %-------------------------------------------------------------------------
 \bibliographystyle{ieee}
-\begin{thebibliography}{8}
+\begin{thebibliography}{6}
 
 \bibitem{bayer1976}
 B.~E.~Bayer, ``Color imaging array,'' U.S. Patent 3,971,065, 1976.
@@ -355,12 +355,6 @@ C.~Harris and M.~Stephens, ``A combined corner and edge detector,'' \textit{Alve
 
 \bibitem{canny1986}
 J.~Canny, ``A computational approach to edge detection,'' \textit{IEEE TPAMI}, 1986.
-
-\bibitem{he2016}
-K.~He, X.~Zhang, S.~Ren, and J.~Sun, ``Deep residual learning for image recognition,'' \textit{CVPR}, 2016.
-
-\bibitem{rombach2022}
-R.~Rombach, A.~Blattmann, D.~Lorenz, P.~Esser, and B.~Ommer, ``High-resolution image synthesis with latent diffusion models,'' \textit{CVPR}, 2022.
 
 \end{thebibliography}
 
