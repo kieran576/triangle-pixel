@@ -125,7 +125,7 @@ Each triangle decomposes into 4 sub-triangles of side $S/2$ (3 of same orientati
 
 Each triangle $(r,c)$ captures a single-channel measurement $m(r,c) = I(c^*_{rc}, p_{rc})$, where $c^*_{rc}$ is the assigned channel and $p_{rc}$ is the triangle center.
 
-\textbf{Layer 1 (RAW).} Single-channel measurements form a triangular mosaic. By Property~1, each hexagonal group contains 2R+2G+2B, producing a perceptually full-color image at sufficient viewing distance (a perceptual property shared by all CFAs, not a reconstruction of native resolution)---one-third the bandwidth of full RGB per measurement.
+\textbf{Layer 1 (RAW).} Single-channel measurements form a triangular mosaic. By Property~1, each hexagonal group contains 2R+2G+2B, producing a perceptually full-color image at sufficient viewing distance (the hexagon must subtend below ~1 arcmin visual angle; at typical display resolutions the sensor resolution should match the display---the latency saving is that no ISP runs, not that fewer sensing elements are needed) (a perceptual property shared by all CFAs, not a reconstruction of native resolution)---one-third the bandwidth of full RGB per measurement.
 
 \textbf{Layer 2 (Borrow).} Each triangle borrows missing channels from neighbors. By Property~2, each missing channel has exactly one direct source neighbor:
 
