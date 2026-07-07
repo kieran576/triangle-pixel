@@ -200,6 +200,10 @@ At equivalent data rates (both RAW formats use 8 bits/pixel), the triangular sen
 - **Rendering overhead**: PIL-based triangle rendering is the pipeline bottleneck; GPU rasterization would enable higher resolutions
 - **Physical validation**: All results are simulation-based; a physical triangular CMOS sensor is needed for real-world validation
 
+### 8.2a Triangular Display Integration
+
+The zero-latency advantage is maximized when both the sensor and the display share the triangular grid geometry. If the display panel also uses a triangular sub-pixel layout matching the sensor 6-triangle hexagonal groups, the raw sensor data can be displayed directly without any format conversion---each sensor triangle drives its corresponding display triangle 1:1. The 2R+2G+2B hexagon on the sensor maps identically to a 2R+2G+2B hexagon on the display, eliminating demosaicing, resampling, and color-space conversion from the signal chain entirely. Triangular sub-pixel layouts exist in some OLED panels (e.g., Samsung Diamond Pixel), though with different geometry; a sensor-matched triangular display would close the loop for truly zero-computation end-to-end imaging. This sensor-display co-design is particularly relevant for AR/VR passthrough systems where latency directly causes motion sickness.
+
 ### 8.3 Future Work
 
 The triangular representation's self-similarity and 3D affinity open several research directions:
