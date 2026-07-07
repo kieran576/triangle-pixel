@@ -206,6 +206,7 @@ At equivalent data rates (both RAW formats use 8 bits/pixel), the triangular sen
 - **High-frequency loss:** See frequency sweep analysis (S=12): 31.6 dB at 1 cy, declining to 10.0 dB at 16 cy, consistent with sparse sampling theory.
 - **AI training requirement**: The GCN requires per-image training; a generalizable model would need diverse training data
 - **Rendering overhead**: PIL-based triangle rendering is the pipeline bottleneck; GPU rasterization would enable higher resolutions
+- **Physical fabrication**: Fabricating a triangular CMOS sensor presents challenges including lower fill factor (corner regions), non-standard microlens design, and adapting column-parallel ADC readout to a triangular lattice. These are solvable with modern backside-illuminated (BSI) processes.
 - **Physical validation**: All results are simulation-based; a physical triangular CMOS sensor is needed for real-world validation
 
 ### 8.3 Future Work
