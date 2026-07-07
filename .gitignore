@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 *.npz
+*.zip
+*.html
 demo_output/
 real_photo_test/
 test_suite/
