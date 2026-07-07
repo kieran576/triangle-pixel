@@ -29,7 +29,7 @@ Kieran Wang\\
 \maketitle
 
 \begin{abstract}
-We propose Triangle Pixel, a complete computer vision pipeline built on equilateral triangle meshes instead of rectangular pixel grids. The system replaces Bayer filter demosaicing with a triangular channel assignment pattern that guarantees each hexagonal group contains 2R+2G+2B, enables zero-computation color reconstruction, and achieves 70\% of Bayer PSNR (against bilinear demosaicing baseline at lower spatial sampling density) using only 2\% of the samples (measuring sparse-sensor reconstruction, not per-pixel quality). We introduce triangular-native ISP correction using color-difference median filtering on 3-neighbor graphs, Sierpinski-based multi-scale super-resolution, and a graph convolutional network (GCN) that performs end-to-end demosaicing in a single forward pass, approaching hand-crafted ISP quality with only $\sim$1,300 parameters. The triangular mesh extends to 3D surface representation, Harris corner detection on 3-directional gradients, and rotation-invariant feature descriptors. Benchmarks show directional anisotropy of only 2.1~dB across all edge orientations. The full pipeline runs at 59~FPS on a consumer CPU for a 400$\times$300 image at S=16 (1,219 triangles).
+We propose Triangle Pixel, a complete computer vision pipeline built on equilateral triangle meshes instead of rectangular pixel grids. The system replaces Bayer filter demosaicing with a triangular channel assignment pattern that guarantees each hexagonal group contains 2R+2G+2B, enables perceptually color-balanced raw preview, and achieves 70\% of Bayer PSNR (against bilinear demosaicing baseline at lower spatial sampling density) using only 2\% of the samples—measuring sparse-sensor reconstruction quality, not equal-resolution fidelity. We introduce triangular-native ISP correction using color-difference median filtering on 3-neighbor graphs, Sierpinski-based multi-scale super-resolution, and a graph convolutional network (GCN) that performs per-image end-to-end demosaicing, approaching hand-crafted ISP quality with only $\sim$1,300 parameters. The triangular mesh provides a representation-level path to 3D surfaces. Benchmarks show directional anisotropy of only 2.1~dB across all edge orientations. The full pipeline runs at 59~FPS on a consumer CPU for a 400$\times$300 image at S=16 (1,219 triangles).
 \end{abstract}
 
 %-------------------------------------------------------------------------
@@ -100,7 +100,7 @@ Any 6 triangles surrounding a common vertex form a regular hexagon containing ex
 \end{theorem}
 
 \begin{proof}
-Empirically verified on all interior vertices (72/72, 10$\times$18 grid) and across 5 Sierpinski subdivision levels (11,346 hexagonal groups at 100\% accuracy). The period-6 modular arithmetic of the channel assignment guarantees this property.
+Empirically verified on all interior vertices (72/72, 10$\times$18 grid) and across 5 Sierpinski subdivision levels (11,346 hexagonal groups at 100\% accuracy). The period-6 modular arithmetic of the channel assignment guarantees this property (a formal proof by induction on the grid coordinates is straightforward but omitted for brevity; empirical verification suffices for this exploratory paper).
 \end{proof}
 
 \begin{theorem}[Neighbor Diversity]
@@ -133,7 +133,7 @@ Each triangle decomposes into 4 sub-triangles of side $S/2$ (3 of same orientati
 
 Each triangle $(r,c)$ captures a single-channel measurement $m(r,c) = I(c^*_{rc}, p_{rc})$, where $c^*_{rc}$ is the assigned channel and $p_{rc}$ is the triangle center.
 
-\textbf{Layer 1 (RAW).} Single-channel measurements form a triangular mosaic. By Theorem~1, each hexagonal group contains 2R+2G+2B, producing a perceptually full-color image at sufficient viewing distance---zero computation, one-third the bandwidth of RGB.
+\textbf{Layer 1 (RAW).} Single-channel measurements form a triangular mosaic. By Theorem~1, each hexagonal group contains 2R+2G+2B, producing a perceptually full-color image at sufficient viewing distance (a perceptual property shared by all CFAs, not a reconstruction of native resolution)---one-third the bandwidth of full RGB per measurement.
 
 \textbf{Layer 2 (Borrow).} Each triangle borrows missing channels from neighbors. By Theorem~2, each missing channel has exactly one direct source neighbor:
 
@@ -167,7 +167,7 @@ Unlike Bayer demosaicing which selects interpolation directions from 4 candidate
 \end{enumerate}
 \end{small}
 
-The 3-neighbor median filter is crucial: it removes isolated zipper artifacts that the median of $N=3$ samples naturally suppresses, without the $3\times3$ or $5\times5$ kernels required by Bayer ISP.
+The 3-neighbor median filter is crucial: it removes isolated zipper artifacts that the median of $N=3$ samples naturally suppresses, without the $3\times3$ or $5\times5$ kernels required by Bayer ISP. Note that the weighted average in Eq.~(1) aggregates color differences from \emph{all} neighbors, not only the one whose own channel matches the target. The weighting by luminance similarity ensures that neighbors across edges contribute little, preventing cross-edge contamination even when the contributing neighbor does not directly measure the target channel.
 
 \subsection{AI End-to-End Demosaicing}
 
@@ -177,7 +177,7 @@ We train a 3-layer Graph Convolutional Network~\cite{kipf2017} to replace both b
 \mathbf{h}^{(l+1)} = \text{ReLU}\!\left(\!\frac{\mathbf{X}^{(l)} + \text{mean}_{j\in\mathcal{N}(i)}\mathbf{X}^{(l)}_j}{2} \mathbf{W}^{(l)} + \mathbf{b}^{(l)}\!\right)
 \end{equation}
 
-The GCN operates on the triangular mesh's natural adjacency (exactly 3 neighbors per node). Input: $[\text{value}/255, \mathbb{1}_R, \mathbb{1}_G, \mathbb{1}_B]$ (4D). Output: $[R, G, B] \in [0,1]$ (3D). Architecture: 4$\to$32$\to$32$\to$3, trained with MSE loss and Adam optimizer on sensor simulator-generated (noisy RAW, clean RGB) pairs. The model has only $\sim$1,300 parameters and trains in 0.6 seconds on a 400$\times$300 image.
+The GCN operates on the triangular mesh's natural adjacency (exactly 3 neighbors per node). Input: $[\text{value}/255, \mathbb{1}_R, \mathbb{1}_G, \mathbb{1}_B]$ (4D). Output: $[R, G, B] \in [0,1]$ (3D). Architecture: 4$\to$32$\to$32$\to$3, trained with MSE loss and Adam optimizer (learning rate 0.001, 150 epochs) on sensor simulator-generated (noisy RAW, clean RGB) pairs. The model has only $\sim$1,300 parameters. \textbf{Important limitation:} the GCN is trained per-image (self-supervised on the target scene itself), so it learns image-specific statistics rather than a generalizable mapping. It serves as a proof-of-concept for learned triangular demosaicing; a general-purpose model requires diverse training data and is deferred to future work.
 
 %-------------------------------------------------------------------------
 \section{Multi-Scale Processing}
@@ -208,17 +208,17 @@ g_x = \frac{\sqrt{3}}{2}(g_2 - g_1), \quad g_y = \sigma_{rc}\left(\frac{1}{2}g_1
 \end{equation}
 where $\sigma_{rc} = +1$ for $\triangle$ and $\sigma_{rc} = -1$ for $\triangledown$, accounting for the 180$^\circ$ relative orientation.
 
-The Harris response $R = \det(M) - k \cdot \text{tr}(M)^2$ detects corners on the triangular mesh~\cite{harris1988}. Multi-scale detection across the Sierpinski pyramid provides scale-invariant keypoints. Quantitative evaluation across 3 test images (edge, gradient, textured) at S=16: the detector finds 39--177 keypoints per image; self-matching with the 16D descriptor under ratio-test 0.75 yields 8--20 correct matches. Super-resolution (2$\times$, self-similar sharpening) achieves 17.8~dB PSNR when downscaled.
+The Harris response $R = \det(M) - k \cdot \text{tr}(M)^2$ detects corners on the triangular mesh~\cite{harris1988}. Multi-scale detection across the Sierpinski pyramid provides scale-invariant keypoints. Quantitative evaluation across 3 test images (edge, gradient, textured) at S=16: the detector finds 39--177 keypoints per image; self-matching with the 16D descriptor under ratio-test 0.75 yields 8--20 correct matches. Super-resolution (2$\times$, self-similar sharpening) achieves 17.8~dB PSNR when the output is downscaled back to reference resolution; this is below the $>$30~dB typical of modern deep SR methods, indicating that the simple bilinear-upsample-plus-sharpen strategy captures only coarse structure.
 
 \subsection{Rotation-Invariant Descriptor}
 
-A fixed 1-ring template (center + 3 neighbors = 4 triangles, each contributing normalized luminance + 3 edge gradients) yields a 16-dimensional descriptor. Rotation invariance is achieved by cyclically permuting edge indices to align with the dominant gradient direction. This provides 3-fold discrete rotational invariance sufficient for the triangular grid's natural symmetries---a compact alternative to SIFT's 128D continuous-invariance descriptor~\cite{lowe2004}.
+The 16-dimensional descriptor is preliminary: its 1-ring support provides limited discriminability, and discrete 3-fold rotation invariance does not match the continuous invariance of orientation histograms. Matching experiments show 8--20 correct self-matches on textured images under ratio-test 0.75---below the hundreds typical of SIFT, reflecting both the small support and the absence of a scale-space extrema detector.
 
 %-------------------------------------------------------------------------
 \section{3D Unification}
 %-------------------------------------------------------------------------
 
-Each triangle face can map to a 3D mesh face when depth information is available (e.g., from a depth sensor or stereo matching). The shared-vertex structure means adjacent 2D triangles share 3D edges, producing a watertight mesh. The mesh can be exported to Wavefront OBJ format and rendered from arbitrary viewpoints using painter's algorithm. We demonstrate this conceptual 2D-to-3D mapping using luminance-as-depth as a proxy, acknowledging that a real 3D pipeline requires proper depth acquisition.
+The 3D mapping is a representation-level property: given depth from an external source, the triangular mesh converts directly to a watertight 3D surface. No depth estimation is performed in this work. The mesh can be exported to Wavefront OBJ format and rendered from arbitrary viewpoints using painter's algorithm. We demonstrate this conceptual 2D-to-3D mapping using luminance-as-depth as a proxy, acknowledging that a real 3D pipeline requires proper depth acquisition.
 
 Depth-aware edge detection suppresses edges at depth discontinuities that are not supported by color changes, reducing false positives at shadow boundaries and texture edges.
 
@@ -228,7 +228,7 @@ Depth-aware edge detection suppresses edges at depth discontinuities that are no
 
 \subsection{Setup}
 
-Tests used 8 image types at $400\times300$ pixels: directional edges (0\textdegree, 45\textdegree, 90\textdegree, 135\textdegree), a red-blue color boundary, a Siemens star resolution target, a grayscale ramp, and one real photograph ($451\times800$, resized). The triangular sensor was simulated with optical blur ($\sigma=0.5$ px), photon shot noise (ISO~100), and read noise (3~e$^-$). Bayer comparison used bilinear demosaicing on the same pixel grid as a simple baseline (we use this to measure sparse-reconstruction quality; a same-photodiode-count comparison with state-of-the-art demosaicing is deferred to future work). All experiments ran on an AMD 7840 CPU; the pipeline uses numba JIT for $54\times$ acceleration.
+Tests used 8 image types at $400\times300$ pixels: directional edges (0\textdegree, 45\textdegree, 90\textdegree, 135\textdegree), a red-blue color boundary, a Siemens star resolution target, a grayscale ramp, and one real photograph ($451\times800$, resized). The triangular sensor was simulated with optical blur ($\sigma=0.5$ px, Gaussian PSF), photon shot noise (ISO~100, Poisson distributed with signal proportional to triangle area), and read noise (3~e$^-$, Gaussian). We assume ideal spectral response per color filter (no crosstalk). Bayer comparison used bilinear demosaicing on the same pixel grid as a simple baseline (we use this to measure sparse-reconstruction quality; a same-photodiode-count comparison with state-of-the-art demosaicing is deferred to future work). All experiments ran on an AMD 7840 CPU; the pipeline uses numba JIT for $54\times$ acceleration.
 
 \subsection{Sensor Efficiency}
 
