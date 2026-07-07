@@ -174,7 +174,7 @@ All experiments ran on an AMD 7840 CPU with integrated graphics. The pipeline us
 | Edge | 24.7 dB | 25.1 dB | −0.4 dB | 0.6s |
 | Real Photo | 20.0 dB | 21.4 dB | −1.4 dB | 7.4s |
 
-The 3-layer GCN (2,500 parameters) approaches hand-crafted ISP quality with a single forward pass and no ratio heuristics. On the edge image, the gap is only 0.4 dB. The GCN requires per-image training (self-supervised), making it suitable for applications where per-scene optimization is acceptable.
+The 3-layer GCN (~1,300 parameters) approaches hand-crafted ISP quality with a single forward pass. On the edge image, the gap is 0.4 dB. The GCN requires per-image training (self-supervised, 0.6-7.4s). It is a proof-of-concept for learned triangular demosaicing, not yet a general-purpose solution.
 
 ### 7.4 Processing Speed
 
