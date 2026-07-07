@@ -316,7 +316,7 @@ At equivalent data rates (both RAW: 8 bits/pixel), the triangular sensor achieve
 \subsection{Limitations}
 
 \begin{itemize}[nosep]
-\item \textbf{High-frequency loss:} The Siemens star benchmark reveals detail loss at high spatial frequencies, inherent to coarser sampling.
+\item \textbf{High-frequency loss:} The Siemens star benchmark reveals predictable detail loss at high spatial frequencies. Frequency sweep analysis (S=12, Nyquist $\approx$0.083 cy/px) shows PSNR declining from 31.6~dB at 1~cycle to 10.0~dB at 16~cycles, consistent with sparse sampling theory.
 \item \textbf{AI training:} The GCN requires per-image training; a generalizable model needs diverse data.
 \item \textbf{Rendering:} PIL-based triangle rendering is the bottleneck; GPU rasterization would enable higher resolutions.
 \item \textbf{Physical validation:} All results are simulation; a physical triangular CMOS sensor is needed.
