@@ -28,7 +28,7 @@ python triangle_pixel_gui.py
 python demo.py
 ```
 
-> **论文**: [arxiv_submission/](arxiv_submission/) — 上传 `overleaf_upload.zip` 到 [Overleaf](https://overleaf.com) 直接编译
+> **论文**: [paper.pdf](paper.pdf) — 已编译 PDF
 > **代码**: [github.com/kieran576/triangle-pixel](https://github.com/kieran576/triangle-pixel)
 
 ## 系统架构
