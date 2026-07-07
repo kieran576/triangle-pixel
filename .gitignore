@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.npz
+demo_output/
+real_photo_test/
+test_suite/
+bench_images/
+test_*.png
+*.egg-info/
