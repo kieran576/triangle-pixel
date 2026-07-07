@@ -38,7 +38,9 @@ We propose Triangle Pixel, a complete computer vision pipeline built on equilate
 
 Modern digital cameras universally employ the Bayer color filter array~\cite{bayer1976}, a $2\times2$ repeating pattern of red, green, and blue filters over a rectangular photodiode grid. Despite its ubiquity, the Bayer pattern imposes fundamental constraints: only one-quarter of pixels capture red or blue light (vs. 50\% green), requiring computationally expensive demosaicing that introduces color artifacts at edges~\cite{hamilton1997}; the rectangular grid has anisotropic sampling with only 4-fold rotational symmetry; and the resulting RGB representation is tightly coupled to 2D imaging, making 3D integration cumbersome.
 
-We propose an alternative sensor topology: photodiodes arranged on an equilateral triangular lattice, with a 6-triangle repeating color filter assignment that naturally balances all three channels. This arrangement provides three key advantages:
+Alternative sensor layouts have been explored: Fujifilm's X-Trans~\cite{fujifilm2012} uses a $6\times6$ pseudo-random pattern to reduce moir\'e; Foveon X3~\cite{hubel2004} stacks photodiodes vertically for per-pixel full color, at the cost of light efficiency. Both retain rectangular grids. Learned demosaicing~\cite{gharbi2016} improves reconstruction but adds computation.
+
+We propose a more fundamental change: photodiodes arranged on an equilateral triangular lattice, with a 6-triangle repeating color filter assignment that naturally balances all three channels. This arrangement provides three key advantages:
 
 \begin{enumerate}[nosep]
 \item \textbf{Data efficiency.} Each triangle captures exactly one color channel with 100\% fill factor. A hexagonal group of 6 triangles contains 2R+2G+2B without computation.
@@ -68,7 +70,7 @@ V_{ij} = \big(i \cdot S/2 + (j \bmod 2) \cdot S/2,\; j \cdot h\big)
 \label{eq:vertices}
 \end{equation}
 
-where $i, j \in \mathbb{Z}$ and a vertex exists iff $i+j$ is even. Each rhombus formed by four adjacent vertices decomposes into two equilateral triangles: one $\triangle$ (pointing up) and one $\triangledown$ (pointing down). The grid is indexed by row $r$ and column $c$, with $\triangle$ when $r+c$ is even and $\triangledown$ otherwise. Each triangle has exactly 3 edge-sharing neighbors~\cite{kipf2017}:
+where $i, j \in \mathbb{Z}$ and a vertex exists iff $i+j$ is even. Each rhombus formed by four adjacent vertices decomposes into two equilateral triangles: one $\triangle$ (pointing up) and one $\triangledown$ (pointing down). The grid is indexed by row $r$ and column $c$, with $\triangle$ when $r+c$ is even and $\triangledown$ otherwise. Each triangle has exactly 3 edge-sharing neighbors:
 
 \begin{align}
 \triangle(r,c):&\; (r,c-1),\, (r,c+1),\, (r+1,c) \quad\text{(all $\triangledown$)}\\
@@ -98,7 +100,7 @@ Any 6 triangles surrounding a common vertex form a regular hexagon containing ex
 \end{theorem}
 
 \begin{proof}
-The six triangles surrounding vertex $(vr, vc)$ are at grid positions $(vr-1, vc-1)$, $(vr-1, vc+1)$, $(vr, vc-2)$, $(vr, vc+2)$, $(vr+1, vc-1)$, $(vr+1, vc+1)$. Applying the channel assignment pattern yields exactly two of each channel. This holds at all Sierpinski subdivision levels (fractal self-similarity).
+The six triangles surrounding vertex $(vr, vc)$ are at grid positions $(vr-1, vc-1)$, $(vr-1, vc+1)$, $(vr, vc-2)$, $(vr, vc+2)$, $(vr+1, vc-1)$, $(vr+1, vc+1)$. Applying the channel assignment pattern yields exactly two of each channel.
 \end{proof}
 
 \begin{theorem}[Neighbor Diversity]
@@ -147,13 +149,13 @@ Unlike Bayer demosaicing which selects interpolation directions from 4 candidate
 \item Compute initial borrowed RGB (Layer 2)
 \item \textbf{for} $iter = 1$ to $K$ \textbf{do}
   \begin{enumerate}[nosep]
-  \item Compute color differences $\Delta_{RG}, \Delta_{RB}, \Delta_{GB}$
+  \item Compute color differences $\Delta_{RG} = R-G$, $\Delta_{RB} = R-B$, $\Delta_{GB} = G-B$
   \item Apply 3-neighbor median filter to each difference map
   \item For each triangle, estimate missing channel via:
   \begin{equation}
   \Delta_{ch}(p_T) = \frac{\sum_{N} w(T,N) \Delta_{ch}(p_N)}{\sum_{N} w(T,N)}
   \end{equation}
-  where $w(T,N) = \exp(-|I_T - I_N|^2 / 2\sigma^2)$
+  where $w(T,N) = \exp(-|I_T - I_N|^2 / 2\sigma^2)$ and $I$ denotes the per-triangle luminance computed from the current RGB estimate. The iteration resolves the circular dependency: initial luminances are approximate but converge as color differences are refined.
   \item Reconstruct: $I(ch, p_T) = I(c^*_T, p_T) \pm \Delta_{ch}(p_T)$
   \item Known channel remains fixed (ground truth at its position)
   \end{enumerate}
@@ -171,7 +173,7 @@ We train a 3-layer Graph Convolutional Network to replace both borrow and ISP wi
 \mathbf{h}^{(l+1)} = \text{ReLU}\!\left(\!\frac{\mathbf{X}^{(l)} + \text{mean}_{j\in\mathcal{N}(i)}\mathbf{X}^{(l)}_j}{2} \mathbf{W}^{(l)} + \mathbf{b}^{(l)}\!\right)
 \end{equation}
 
-The GCN operates on the triangular mesh's natural adjacency (exactly 3 neighbors per node). Input: $[\text{value}/255, \mathbb{1}_R, \mathbb{1}_G, \mathbb{1}_B]$ (4D). Output: $[R, G, B] \in [0,1]$ (3D). Architecture: 4$\to$32$\to$32$\to$3, trained with MSE loss and Adam optimizer on sensor simulator-generated (noisy RAW, clean RGB) pairs. The model has only $\sim$1,300 parameters and trains in 0.6 seconds on a 400$\times$400 image.
+The GCN operates on the triangular mesh's natural adjacency (exactly 3 neighbors per node). Input: $[\text{value}/255, \mathbb{1}_R, \mathbb{1}_G, \mathbb{1}_B]$ (4D). Output: $[R, G, B] \in [0,1]$ (3D). Architecture: 4$\to$32$\to$32$\to$3, trained with MSE loss and Adam optimizer on sensor simulator-generated (noisy RAW, clean RGB) pairs. The model has only $\sim$1,300 parameters and trains in 0.6 seconds on a 400$\times$300 image.
 
 %-------------------------------------------------------------------------
 \section{Multi-Scale Processing}
@@ -182,7 +184,7 @@ The Sierpinski subdivision enables natural multi-scale processing. Defining leve
 
 \textbf{Super-resolution.} Coarse triangle colors are bilinearly upsampled to a finer grid ($S \to S/\text{zoom}$), followed by edge-aware sharpening that preserves color discontinuities at parent-triangle boundaries.
 
-\textbf{Multi-scale edge detection.} Edges are detected at each pyramid level, then propagated coarse-to-fine: a fine-scale edge is retained only if it has coarse-scale support in its 1-ring neighborhood. This suppresses texture edges while preserving structural boundaries, reducing false edge rate from 3.3\% to 0.8\%.
+\textbf{Multi-scale edge detection.} Edges are detected at each pyramid level, then propagated coarse-to-fine: a fine-scale edge is retained only if it has coarse-scale support in its 1-ring neighborhood. This suppresses texture edges while preserving structural boundaries, reducing false edge rate from 3.3\% to 0.8\% on the gradient test image.
 
 %-------------------------------------------------------------------------
 \section{Triangular CV Primitives}
@@ -198,14 +200,15 @@ The three edge directions define natural gradient operators. The gradient magnit
 The 2D structure tensor is constructed from three directional gradients projected to $(g_x, g_y)$:
 
 \begin{equation}
-g_x = \frac{\sqrt{3}}{2}(g_2 - g_1), \quad g_y = \pm\left(\frac{1}{2}g_1 + \frac{1}{2}g_2 + g_3\right)
+g_x = \frac{\sqrt{3}}{2}(g_2 - g_1), \quad g_y = \sigma_{rc}\left(\frac{1}{2}g_1 + \frac{1}{2}g_2 + g_3\right)
 \end{equation}
+where $\sigma_{rc} = +1$ for $\triangle$ and $\sigma_{rc} = -1$ for $\triangledown$, accounting for the 180$^\circ$ relative orientation.
 
 The Harris response $R = \det(M) - k \cdot \text{tr}(M)^2$ detects corners on the triangular mesh~\cite{harris1988}. Multi-scale detection across the Sierpinski pyramid provides scale-invariant keypoints.
 
 \subsection{Rotation-Invariant Descriptor}
 
-A fixed 1-ring template (center + 3 neighbors = 4 triangles, each contributing normalized luminance + 3 edge gradients) yields a 16-dimensional descriptor. Rotation invariance is achieved by cyclically permuting edge indices to align with the dominant gradient direction, exploiting the triangular grid's 3-fold rotational symmetry---analogous to SIFT's orientation assignment~\cite{lowe2004} but using only 16 dimensions vs.\ SIFT's 128.
+A fixed 1-ring template (center + 3 neighbors = 4 triangles, each contributing normalized luminance + 3 edge gradients) yields a 16-dimensional descriptor. Rotation invariance is achieved by cyclically permuting edge indices to align with the dominant gradient direction. This provides 3-fold discrete rotational invariance sufficient for the triangular grid's natural symmetries---a compact alternative to SIFT's 128D continuous-invariance descriptor~\cite{lowe2004}.
 
 %-------------------------------------------------------------------------
 \section{3D Unification}
@@ -221,7 +224,7 @@ Depth-aware edge detection suppresses edges at depth discontinuities that are no
 
 \subsection{Setup}
 
-Tests used 8 image types at $400\times400$ pixels: directional edges (0\textdegree, 45\textdegree, 90\textdegree, 135\textdegree), a red-blue color boundary, a Siemens star resolution target, a grayscale ramp, and one real photograph (451$\times$800, resized). The triangular sensor was simulated with optical blur ($\sigma=0.5$ px), photon shot noise (ISO~100), and read noise (3~e$^-$). Bayer comparison used bilinear demosaicing on the same pixel grid. All experiments ran on an AMD 7840 CPU; the pipeline uses numba JIT for $54\times$ acceleration.
+Tests used 8 image types at $400\times300$ pixels: directional edges (0\textdegree, 45\textdegree, 90\textdegree, 135\textdegree), a red-blue color boundary, a Siemens star resolution target, a grayscale ramp, and one real photograph ($451\times800$, resized). The triangular sensor was simulated with optical blur ($\sigma=0.5$ px), photon shot noise (ISO~100), and read noise (3~e$^-$). Bayer comparison used bilinear demosaicing on the same pixel grid. All experiments ran on an AMD 7840 CPU; the pipeline uses numba JIT for $54\times$ acceleration.
 
 \subsection{Sensor Efficiency}
 
@@ -273,7 +276,7 @@ Siemens Star & 14.6 dB & 0.477 & 22.2 dB \\
 
 \subsection{AI vs Hand-Crafted ISP}
 
-Figure~\ref{fig:ai} compares the 3-layer GCN (2,500 parameters) with our hand-crafted ISP. On the edge image, the GCN achieves 24.7~dB vs.\ ISP's 25.1~dB (gap of only 0.4~dB). The GCN requires per-image training (self-supervised, 0.6--7.4~s), making it suitable for applications where per-scene optimization is acceptable.
+Figure~\ref{fig:ai} compares the 3-layer GCN ($\sim$1,300 parameters) with our hand-crafted ISP. On the edge image, the GCN achieves 24.7~dB vs.\ ISP's 25.1~dB (gap of only 0.4~dB). The GCN requires per-image training (self-supervised, 0.6--7.4~s), making it suitable for applications where per-scene optimization is acceptable.
 
 \subsection{Processing Speed}
 
@@ -336,7 +339,7 @@ We presented Triangle Pixel, a complete vision system replacing rectangular pixe
 
 %-------------------------------------------------------------------------
 \bibliographystyle{ieee}
-\begin{thebibliography}{6}
+\begin{thebibliography}{9}
 
 \bibitem{bayer1976}
 B.~E.~Bayer, ``Color imaging array,'' U.S. Patent 3,971,065, 1976.
@@ -355,6 +358,15 @@ C.~Harris and M.~Stephens, ``A combined corner and edge detector,'' \textit{Alve
 
 \bibitem{canny1986}
 J.~Canny, ``A computational approach to edge detection,'' \textit{IEEE TPAMI}, 1986.
+
+\bibitem{fujifilm2012}
+Fujifilm, ``X-Trans CMOS sensor,'' \textit{Fujifilm Technical Review}, 2012.
+
+\bibitem{hubel2004}
+P.~M.~Hubel, J.~Liu, and R.~J.~Guttosch, ``Spatial frequency response of color image sensors: Bayer color filters and Foveon X3,'' \textit{Proc. SPIE}, 2004.
+
+\bibitem{gharbi2016}
+M.~Gharbi, G.~Chaurasia, S.~Paris, and F.~Durand, ``Deep joint demosaicking and denoising,'' \textit{ACM TOG}, 2016.
 
 \end{thebibliography}
 
