@@ -12,9 +12,11 @@ We propose Triangle Pixel, a complete computer vision pipeline built on equilate
 
 ## 1. Introduction
 
-Modern digital cameras rely on the Bayer color filter array [Bayer 1976], a 2×2 repeating pattern of red, green, and blue filters over a rectangular photodiode grid. While ubiquitous, the Bayer pattern has fundamental limitations: only one-third of pixels capture red or blue light, requiring computationally expensive demosaicing that introduces color artifacts at edges; the rectangular grid has anisotropic sampling (4-directional gradients); and the resulting RGB representation is tightly coupled to the 2D imaging pipeline, making 3D integration cumbersome.
+Modern digital cameras rely on the Bayer color filter array [Bayer 1976], a 2×2 repeating pattern of red, green, and blue filters over a rectangular photodiode grid. While ubiquitous, the Bayer pattern has fundamental limitations: only one-quarter of pixels capture red or blue light (vs. 50% green), requiring computationally expensive demosaicing that introduces color artifacts at edges; the rectangular grid has anisotropic sampling (4-directional gradients); and the resulting RGB representation is tightly coupled to the 2D imaging pipeline, making 3D integration cumbersome.
 
-We propose an alternative: organizing photodiodes on an equilateral triangular lattice, with a color filter assignment that forms a repeating 6-triangle hexagonal unit containing 2R+2G+2B. This arrangement provides three key advantages:
+Alternative sensor layouts have been explored: Fujifilm X-Trans uses a 6x6 pseudo-random pattern to reduce moire; Foveon X3 stacks photodiodes vertically for per-pixel full color, at the cost of light efficiency. Both retain rectangular grids. Learned demosaicing improves reconstruction but adds computation.
+
+We propose a more fundamental change: organizing photodiodes on an equilateral triangular lattice, with a color filter assignment that forms a repeating 6-triangle hexagonal unit containing 2R+2G+2B. This arrangement provides three key advantages:
 
 1. **Data efficiency**: Each triangle captures exactly one color channel with 100% fill factor. A hexagonal group of 6 triangles naturally balances all three channels without computation.
 2. **Geometric isotropy**: The triangular lattice has 6-fold rotational symmetry vs. the rectangular grid's 4-fold, providing more uniform directional response.
