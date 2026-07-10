@@ -304,7 +304,54 @@ def collect_videos(source_dir):
 #  主入口
 # ============================================================
 
+
+def replay_video(tri_dir):
+    """Reconstruct playable .mp4 from .tri frame directory."""
+    if not HAS_CV2:
+        print("Need OpenCV: pip install opencv-python")
+        return
+    video_meta = {}
+    mp = os.path.join(tri_dir, "_video.json")
+    if os.path.exists(mp):
+        with open(mp, "r", encoding="utf-8") as f:
+            video_meta = json.load(f)
+    fps = video_meta.get("fps", 30)
+    frames = sorted([f for f in os.listdir(tri_dir) if f.startswith("frame_") and f.endswith(".npy")])
+    if not frames:
+        print(f"No frames in: {tri_dir}")
+        return
+    print(f"Replay: {len(frames)} frames @ {fps} FPS")
+    raw0 = np.load(os.path.join(tri_dir, frames[0]))
+    nr, nc = raw0.shape
+    mp0 = os.path.join(tri_dir, frames[0].replace(".npy", ".json"))
+    with open(mp0, "r", encoding="utf-8") as f:
+        meta0 = json.load(f)
+    S = meta0.get("S", 12)
+    h = meta0.get("h", S * math.sqrt(3) / 2.0)
+    W = meta0.get("W", int(nc * S / 2.0))
+    H = meta0.get("H", int(nr * h))
+    out = os.path.join(tri_dir, "reconstructed.mp4")
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    writer = cv2.VideoWriter(out, fourcc, fps, (W, H))
+    from triangle_engine import borrow_neighbors, correct_triangular_isp, render_triangles
+    it = tqdm(frames, desc="Replay") if HAS_TQDM else frames
+    for fn in it:
+        raw = np.load(os.path.join(tri_dir, fn)).astype(np.float32)
+        b = borrow_neighbors(raw, nr, nc, edge_mode="mirror")
+        c = correct_triangular_isp(raw, b, nr, nc, iterations=2)
+        r = render_triangles(c, S, h, nr, nc, W, H)
+        writer.write(cv2.cvtColor(np.array(r), cv2.COLOR_RGB2BGR))
+    writer.release()
+    print(f"Saved: {out}")
+
+
 def main():
+    # Handle --replay before argparse (doesnt need --source)
+    if "--replay" in sys.argv:
+        idx = sys.argv.index("--replay")
+        tri_dir = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else "./tri_output/"
+        replay_video(tri_dir)
+        return
     parser = argparse.ArgumentParser(
         description="矩形图像/视频 → 三角 RAW 批量转换器",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -335,8 +382,14 @@ def main():
     parser.add_argument("--denoise-douyin", action="store_true",
                         help="抖音视频轻度去压缩伪影")
     parser.add_argument("--crop-watermark", action="store_true",
-                        help="裁掉右上角水印区域")
+                        help="Crop watermark area")
+    parser.add_argument("--replay", action="store_true",
+                        help="Reconstruct playable .mp4 from converted .tri frames")
     args = parser.parse_args()
+
+    if args.replay:
+        replay_video(args.path or args.output_dir)
+        return
 
     # 输出目录
     os.makedirs(args.output_dir, exist_ok=True)
