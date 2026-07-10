@@ -66,6 +66,10 @@ def add_sensor_noise(raw, base_iso=100, read_noise_e=3.0, dark_current_e=0.5):
     Returns:
         noisy: 带噪声的 RAW [0-255]
     """
+    # ISO=0: 无噪声, 直接返回
+    if base_iso <= 0:
+        return raw.copy()
+
     # 转换为电子数 (假设满阱容量 ~5000e- at ISO 100，线性映射)
     full_well = 5000.0 * (100.0 / base_iso)
     electrons = raw / 255.0 * full_well
