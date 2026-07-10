@@ -36,6 +36,7 @@ import os
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from tkinter import Tk, filedialog
 
 import numpy as np
 from PIL import Image
@@ -89,6 +90,23 @@ def crop_watermark(pil_img):
 #  核心转换
 # ============================================================
 
+
+def _save_preview(raw_path, tri_raw, sensor):
+    """从三角 RAW 重建 PNG 预览, 存到 .npy 旁边."""
+    try:
+        from triangle_engine import borrow_neighbors, correct_triangular_isp, render_triangles
+        nr, nc = tri_raw.shape
+        S, h = sensor.triangle_side, sensor.triangle_side * 0.8660254
+        borrowed = borrow_neighbors(tri_raw, nr, nc, edge_mode="mirror")
+        corrected = correct_triangular_isp(tri_raw, borrowed, nr, nc, iterations=2)
+        # 推算原图尺寸
+        W = int(nc * S / 2.0)
+        H = int(nr * h)
+        result = render_triangles(corrected, S, h, nr, nc, W, H)
+        png_path = raw_path.replace(".npy", "_preview.png")
+        result.save(png_path)
+    except Exception:
+        pass  # 预览失败不影响主流程
 def convert_image(img_path, sensor, output_dir, denoise=False, watermark=False):
     """转换单张图片 → .tri 对."""
     scene = Image.open(img_path).convert("RGB")
@@ -114,7 +132,7 @@ def convert_image(img_path, sensor, output_dir, denoise=False, watermark=False):
     np.save(raw_path, tri_raw.astype(np.float32))
     with open(meta_path, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
-
+    _save_preview(raw_path, tri_raw, sensor)
     return raw_path
 
 
@@ -184,7 +202,7 @@ def convert_video(video_path, sensor, output_dir, frame_step=5,
             np.save(raw_path, tri_raw.astype(np.float32))
             with open(meta_path, "w", encoding="utf-8") as f:
                 json.dump(meta, f, ensure_ascii=False, indent=2)
-
+            _save_preview(raw_path, tri_raw, sensor)
             saved.append(raw_path)
             saved_count += 1
 
@@ -300,7 +318,8 @@ def main():
     )
     parser.add_argument("--source", choices=["image", "video", "douyin", "webcam"],
                         required=True, help="输入类型")
-    parser.add_argument("path", help="图片/视频目录路径 (webcam 模式忽略)")
+    parser.add_argument("path", nargs="?", default=None,
+                        help="图片/视频路径 (留空弹出文件选择框, webcam 模式忽略)")
     parser.add_argument("--triangle-side", type=int, default=12,
                         help="三角边长 (像素), 默认 12")
     parser.add_argument("--output-dir", default="./tri_output/",
@@ -317,7 +336,6 @@ def main():
                         help="抖音视频轻度去压缩伪影")
     parser.add_argument("--crop-watermark", action="store_true",
                         help="裁掉右上角水印区域")
-
     args = parser.parse_args()
 
     # 输出目录
@@ -349,10 +367,30 @@ def main():
         print("完成")
         return
 
+    # 文件选择框
+    src_path = args.path
+    if not src_path:
+        root = Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        if args.source == "image":
+            src_path = filedialog.askdirectory(title="选择图片目录")
+        else:
+            src_path = filedialog.askopenfilename(
+                title="选择视频文件",
+                filetypes=[("视频文件", "*.mp4 *.mov *.avi *.mkv *.webm *.m4v"),
+                           ("所有文件", "*.*")]
+            )
+        root.destroy()
+        if not src_path:
+            print("未选择文件, 退出")
+            sys.exit(0)
+        print(f"已选择: {src_path}")
+
     # 图片模式
     if args.source == "image":
         image_paths = []
-        path = Path(args.path)
+        path = Path(src_path)
         if path.is_dir():
             image_paths = collect_images(args.path)
         elif path.is_file():
@@ -380,7 +418,7 @@ def main():
     # 视频模式
     elif args.source in ("video", "douyin"):
         video_paths = []
-        path = Path(args.path)
+        path = Path(src_path)
         if path.is_dir():
             video_paths = collect_videos(args.path)
         elif path.is_file():
