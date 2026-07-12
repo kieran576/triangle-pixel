@@ -41,11 +41,11 @@ Color filters are assigned to triangles in a repeating 6-column pattern:
 $$\text{Even rows } (r \bmod 2 = 0): [R, G, B, B, G, R] \text{ (period 6)}$$
 $$\text{Odd rows } (r \bmod 2 = 1): [B, G, R, R, G, B] \text{ (period 6)}$$
 
-**Theorem 1 (Hexagonal Balance).** Any 6 triangles surrounding a common vertex form a regular hexagon containing exactly 2R + 2G + 2B.
+**Property 1 (Hexagonal Balance).** Any 6 triangles surrounding a common vertex form a regular hexagon containing exactly 2R + 2G + 2B.
 
 *Proof.* The six triangles surrounding vertex $(vr, vc)$ are at grid positions $(vr-1, vc-1)$, $(vr-1, vc+1)$, $(vr, vc-2)$, $(vr, vc+2)$, $(vr+1, vc-1)$, $(vr+1, vc+1)$. Applying the channel assignment formula yields exactly two of each channel. $\square$
 
-**Theorem 2 (Neighbor Diversity).** For any interior triangle, its three edge-sharing neighbors possess three distinct color channels $\{R, G, B\}$.
+**Property 2 (Neighbor Diversity).** For any interior triangle, its three edge-sharing neighbors possess three distinct color channels $\{R, G, B\}$.
 
 This property ensures that the neighbor-borrowing reconstruction (Section 3.1) produces a full RGB value at every triangle position.
 
@@ -137,7 +137,7 @@ Depth-aware edge detection modifies the gradient computation to respect depth di
 
 ### 7.1 Experimental Setup
 
-Tests were conducted on a synthetic test suite of 8 image types at 400×400 pixels: directional edges (0°, 45°, 90°, 135°), color boundaries (red-blue), a Siemens star resolution target, a grayscale ramp, a textured pattern, and one real photograph. The triangular sensor was simulated with optical blur ($\sigma=0.5$ px), photon shot noise (ISO 100), and read noise (3 e⁻). Bayer comparison used bilinear demosaicing on the same pixel grid.
+Tests were conducted on synthetic test images at 400×300 pixels: directional edges (0°, 45°, 90°, 135°), color boundaries (red-blue), a Siemens star resolution target, a grayscale ramp, a textured pattern, and one real photograph. The triangular sensor was simulated with optical blur ($\sigma=0.5$ px), photon shot noise (ISO 100), and read noise (3 e⁻). Bayer comparison used bilinear demosaicing on the same pixel grid.
 
 All experiments ran on an AMD 7840 CPU with integrated graphics. The pipeline uses numba JIT compilation for 54× acceleration of core loops.
 
@@ -172,7 +172,7 @@ All experiments ran on an AMD 7840 CPU with integrated graphics. The pipeline us
 | Edge | 24.7 dB | 25.1 dB | −0.4 dB | 0.6s |
 | Real Photo | 20.0 dB | 21.4 dB | −1.4 dB | 7.4s |
 
-The 3-layer GCN (2,500 parameters) approaches hand-crafted ISP quality with a single forward pass and no ratio heuristics. On the edge image, the gap is only 0.4 dB. The GCN requires per-image training (self-supervised), making it suitable for applications where per-scene optimization is acceptable.
+The 3-layer GCN (~1,300 parameters) approaches hand-crafted ISP quality with a single forward pass and no ratio heuristics. On the edge image, the gap is only 0.4 dB. The GCN requires per-image training (self-supervised), making it suitable for applications where per-scene optimization is acceptable.
 
 ### 7.4 Processing Speed
 
