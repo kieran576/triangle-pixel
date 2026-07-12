@@ -135,7 +135,7 @@ Each triangle $(r,c)$ captures a single-channel measurement $m(r,c) = I(c^*_{rc}
 
 \textbf{Layer 1 (RAW).} Single-channel measurements form a triangular mosaic. By Property~1, each hexagonal group contains 2R+2G+2B, producing a perceptually full-color image at sufficient viewing distance (the hexagon must subtend below ~1 arcmin visual angle; at typical display resolutions the sensor resolution should match the display---the latency saving is that no ISP runs, not that fewer sensing elements are needed) (a perceptual property shared by all CFAs, not a reconstruction of native resolution)---one-third the bandwidth of full RGB per measurement.
 
-\textbf{Layer 2 (Borrow).} Each triangle fills all three color channels from its three neighbors, discarding its own measurement entirely (which exclusively contributes to adjacent triangles). By Property~2, all $\{R,G,B\}$ channels are available across the neighbors:
+\textbf{Layer 2 (Borrow).} Each triangle fills all three color channels from its three neighbors, excluding its own measurement from its own output (which instead contributes to its three neighbors). By Property~2, all $\{R,G,B\}$ channels are available across the neighbors:
 
 \begin{equation}
 \hat{I}(ch, p_T) = m_{N_{ch}} \quad \text{for } ch \in \{R,G,B\}
