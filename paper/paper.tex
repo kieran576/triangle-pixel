@@ -135,17 +135,17 @@ Each triangle $(r,c)$ captures a single-channel measurement $m(r,c) = I(c^*_{rc}
 
 \textbf{Layer 1 (RAW).} Single-channel measurements form a triangular mosaic. By Property~1, each hexagonal group contains 2R+2G+2B, producing a perceptually full-color image at sufficient viewing distance (the hexagon must subtend below ~1 arcmin visual angle; at typical display resolutions the sensor resolution should match the display---the latency saving is that no ISP runs, not that fewer sensing elements are needed) (a perceptual property shared by all CFAs, not a reconstruction of native resolution)---one-third the bandwidth of full RGB per measurement.
 
-\textbf{Layer 2 (Borrow).} Each triangle borrows missing channels from neighbors. By Property~2, each missing channel has exactly one direct source neighbor:
+\textbf{Layer 2 (Borrow).} Each triangle fills all three color channels from its three neighbors, discarding its own measurement entirely (which exclusively contributes to adjacent triangles). By Property~2, all $\{R,G,B\}$ channels are available across the neighbors:
 
 \begin{equation}
-\hat{I}(ch, p_T) = m_{N_{ch}} \quad \text{for } ch \neq c^*_T
+\hat{I}(ch, p_T) = m_{N_{ch}} \quad \text{for } ch \in \{R,G,B\}
 \end{equation}
 
-This produces a full RGB estimate but introduces spatial offset artifacts at edges.
+where {ch}$ is the neighbor that owns channel $. A triangle's own measurement {c^*_T}$ is not used for its own reconstruction---it exclusively serves neighbors. This produces a full RGB estimate but introduces spatial offset (each channel displaced by one triangle).
 
 \subsection{Triangular ISP Correction}
 
-Unlike Bayer demosaicing which selects interpolation directions from 4 candidates, the triangular grid has no direction choice: each missing channel has exactly one source neighbor. Our algorithm instead detects whether the source direction crosses an edge and substitutes with color-difference estimates from non-edge neighbors.
+Unlike Bayer demosaicing which selects interpolation directions, the triangular grid has no direction choice: each missing channel has exactly one neighbor source. Our algorithm detects whether the source direction crosses an edge and substitutes with color-difference estimates from all neighbors.
 
 \begin{small}
 \textbf{Algorithm 1: Triangular ISP Correction}

@@ -61,11 +61,11 @@ Given a scene image, each triangle $(r,c)$ captures a single-channel measurement
 
 **Layer 1 (RAW).** The single-channel measurements are directly output as a triangular mosaic. When viewed at sufficient distance, the hexagonal 2R+2G+2B grouping produces a perceptually full-color image without any computation—enabling zero-latency preview at one-third the bandwidth of RGB.
 
-**Layer 2 (Borrow).** Each triangle borrows its two missing channels from its three neighbors. Since the three neighbors possess $\{R, G, B\}$ (Theorem 2), each missing channel has exactly one direct source neighbor:
+**Layer 2 (Borrow).** Each triangle fills all three color channels from its three edge-sharing neighbors, discarding its own measurement entirely. Since the three neighbors collectively possess $\{R, G, B\}$ (Property 2), all channels can be populated:
 
-$$\hat{I}(ch, p_T) = m_{N_{ch}} \quad \text{for } ch \neq c^*_T$$
+$$\hat{I}(ch, p_T) = m_{N_{ch}} \quad \text{for } ch \in \{R,G,B\}$$
 
-where $N_{ch}$ is the neighbor whose assigned channel is $ch$. This produces a full RGB estimate at every triangle, but introduces spatial offset artifacts at edges (analogous to Bayer zipper artifacts).
+where $N_{ch}$ is the neighbor that owns channel $ch$. Each triangle's own measurement $m_{c^*_T}$ is not used for its own reconstruction---it exclusively serves as the direct source for its three neighbors. This produces a full RGB estimate at every triangle using only neighbor measurements, but introduces spatial offset artifacts (each channel is displaced by one triangle).
 
 ### 3.2 Triangular ISP Correction
 
