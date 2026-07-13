@@ -65,7 +65,7 @@ Given a scene image, each triangle $(r,c)$ captures a single-channel measurement
 
 $$\hat{I}(ch, p_T) = m_{N_{ch}} \quad \text{for } ch \in \{R,G,B\}$$
 
-where $N_{ch}$ is the neighbor that owns channel $ch$. Each triangle's own measurement $m_{c^*_T}$ is excluded from its own output---instead, it serves as the direct source channel for each of its three neighbors' reconstructions. This produces a full RGB estimate at every triangle using only neighbor measurements, but introduces spatial offset artifacts (each channel is displaced by one triangle).
+where $N_{ch}$ is the neighbor that owns channel $ch$. This defines a permutation $\pi$ on the triangular mesh that is 	extbf{self-inverse} ($\pi^2 = 	ext{id}$): the original single-channel sample can be recovered from the borrowed output, guaranteeing the borrow step is strictly lossless. Each triangle's own measurement $m_{c^*_T}$ is excluded from its own output---instead, it serves as the direct source channel for each of its three neighbors' reconstructions. This produces a full RGB estimate at every triangle using only neighbor measurements, but introduces spatial offset artifacts (each channel displaced by one triangle). Each measurement appears in three neighboring outputs, providing inherent 3× redundant sampling.
 
 ### 3.2 Triangular ISP Correction
 

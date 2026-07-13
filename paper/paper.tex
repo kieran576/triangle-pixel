@@ -141,7 +141,7 @@ Each triangle $(r,c)$ captures a single-channel measurement $m(r,c) = I(c^*_{rc}
 \hat{I}(ch, p_T) = m_{N_{ch}} \quad \text{for } ch \in \{R,G,B\}
 \end{equation}
 
-where {ch}$ is the neighbor that owns channel $. A triangle's own measurement {c^*_T}$ is not used for its own reconstruction---it exclusively serves neighbors. This produces a full RGB estimate but introduces spatial offset (each channel displaced by one triangle).
+where $N_{ch}$ is the neighbor that owns channel $ch$. This defines a permutation $\pi: \mathcal{S} \to \mathcal{O}$ on the triangular mesh, mapping single-channel samples to full RGB outputs. The permutation is \textbf{self-inverse} ($\pi^2 = \text{id}$): the original single-channel sample can be recovered from the borrowed output, guaranteeing that the borrow step is strictly lossless. Each triangle's own measurement appears in exactly three neighboring outputs (one per neighbor), providing inherent $3\times$ redundant sampling.
 
 \subsection{Triangular ISP Correction}
 
@@ -324,7 +324,7 @@ At equivalent data rates (both RAW: 8 bits/pixel), the triangular sensor achieve
 \item \textbf{High-frequency loss:} The Siemens star benchmark reveals predictable detail loss at high spatial frequencies. Frequency sweep analysis (S=12, Nyquist $\approx$0.083 cy/px) shows PSNR declining from 31.6~dB at 1~cycle to 10.0~dB at 16~cycles, consistent with sparse sampling theory.
 \item \textbf{AI training:} The GCN requires per-image training; a generalizable model needs diverse data.
 \item \textbf{Rendering:} PIL-based triangle rendering is the bottleneck; GPU rasterization would enable higher resolutions.
-\item \textbf{Physical fabrication:} All results are simulated. Fabricating a triangular CMOS sensor presents challenges: triangular photodiodes have lower fill factor than rectangular ones (corner regions are inefficient), microlens design for non-rectangular pixels is non-standard, and column-parallel ADC readout requires adapting row/column addressing to a triangular lattice. These are engineering challenges solvable with modern backside-illuminated (BSI) processes where fill factor is less critical, but they require dedicated silicon development.
+\item \textbf{Physical fabrication:} Fabricating a triangular CMOS sensor presents engineering challenges: triangular photodiode fill factor, microlens design (only two orientations needed---upward/downward, both manufacturable with existing BSI pyramid/inverted-pyramid processes), and adapting ADC readout to a triangular lattice. Three integrated readout architectures exist for the borrow step: (A) \textbf{signal-routing}: 3 column lines per photosite, fanning out each measurement to its 3 neighbors---adds $\sim$3$\times$ wiring but zero logic delay; (B) \textbf{row-buffer}: cache current $+$ adjacent rows, remap via LUT---2-3 row latency; (C) \textbf{in-pixel copy}: overwrite each triangle's storage with borrowed channels---simplest but destroys raw data. Architecture (A) best matches the self-inverse permutation for lossless borrow. These are solvable with modern BSI processes but require dedicated silicon development.
 \item \textbf{Physical validation:} All results are simulation; a physical triangular CMOS sensor is needed.
 \end{itemize}
 
