@@ -141,6 +141,8 @@ Tests were conducted on synthetic test images at 400×300 pixels: directional ed
 
 All experiments ran on an AMD 7840 CPU with integrated graphics. The pipeline uses numba JIT compilation for 54× acceleration of core loops.
 
+> **Note on SSIM values in Table 1:** Historical Table 1 SSIM values (0.983, 0.999, 0.905, etc.) were computed by the legacy `compute_ssim` function, which only compared whole-image means and variances (a global luminance/covariance approximation). They are **not** true Wang-2004 SSIM values. The function has been rewritten (2026-07-21) to use 11×11 Gaussian-windowed local SSIM via `skimage.metrics.structural_similarity`. The PSNR column remains valid. New SSIM numbers from a full re-benchmark are pending.
+
 ### 7.2 Sensor Efficiency
 
 **Table 1: Triangle vs Bayer sensor comparison (S=12, 2% data)**

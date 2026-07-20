@@ -13,8 +13,7 @@ train_tri.py — 三角 GCN 跨图训练脚本
     # 推理
     python train_tri.py --data ./tri_output/ --infer ./test_img.jpg
 
-    # 导出 ONNX (准备部署到手机)
-    python train_tri.py --data ./tri_output/ --export onnx
+注意: GCN 模型当前不支持 ONNX 导出 (依赖 torch_geometric 的稀疏算子).
 """
 
 import argparse

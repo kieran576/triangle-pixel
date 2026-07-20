@@ -234,24 +234,9 @@ def train_demosaic_gcn(scene_paths, triangle_side=16,
     losses = []
 
     for epoch in range(epochs):
-        # Mini-batch
-        perm = np.random.permutation(N)
-        epoch_loss = 0.0
-        n_batches = 0
-
-        for start in range(0, N, batch_size):
-            idx = perm[start:start + batch_size]
-            Xb = X[idx]
-            yb = y[idx]
-
-            # 为这个 batch 构建邻接表（简化：全连接 3-近邻）
-            # 由于我们是随机采样三角形，直接构建 KNN 图
-            # 简化：在完整网格上训练，不采样
-            pass
-
-        # 纯批次训练对 GCN 不适用（需要完整邻接表）
-        # 改在全图上训练
-        break
+        # GCN 需要完整邻接表, 不做 mini-batch
+        # (随机采样会让每个 batch 重新构建邻接, 反而比全图慢)
+        pass
 
     # 在全图上训练
     n_rows, n_cols, S, h = adj_ref

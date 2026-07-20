@@ -16,15 +16,40 @@ import argparse
 import numpy as np
 from PIL import Image, ImageDraw
 
+# mode 列表: borrow 在本文件 process() 内置;
+#             raw/raw_downscale/correct/correct_isp 委托给 triangle_engine.process_pipeline.
+try:
+    from triangle_engine import process_pipeline
+except ImportError:
+    process_pipeline = None  # 仅用 borrow 模式时可缺
 
-def process(input_path, output_path, triangle_side=20, debug_channels=False):
+
+def process(input_path, output_path, triangle_side=20, debug_channels=False,
+            mode="borrow"):
     """
     Args:
         input_path: 输入图片路径
         output_path: 输出图片路径
         triangle_side: 等边三角形边长（像素）
         debug_channels: True 则用纯色标记每个三角形的通道（R=红, G=绿, B=蓝）
+        mode: 处理模式
+              "borrow" (默认) — 邻居捐赠, 本函数内置
+              "raw" / "raw_downscale" / "correct" / "correct_isp"
+                          — 委托给 triangle_engine.process_pipeline
+                          (需要 NumPy + (可选) Numba 加速)
     """
+    if mode != "borrow":
+        if process_pipeline is None:
+            raise RuntimeError(
+                f"mode={mode!r} 需要 triangle_engine.process_pipeline,"
+                "但导入失败. 请确认 triangle_engine.py 在同目录下."
+            )
+        img = Image.open(input_path).convert("RGB")
+        out = process_pipeline(img, triangle_side=triangle_side, mode=mode)
+        out.save(output_path)
+        print(f"已保存到 {output_path} (mode={mode}, 三角形边长 {triangle_side}px)")
+        return
+
     # 加载原图
     img = Image.open(input_path).convert("RGB")
     W, H = img.size
@@ -150,18 +175,34 @@ def main():
     parser.add_argument(
         "-s",
         "--side",
+        "--triangle-side",
         type=float,
         default=20,
+        dest="triangle_side",
         help="三角形边长（像素），默认 20",
+    )
+    parser.add_argument(
+        "-m",
+        "--mode",
+        choices=["borrow", "raw", "raw_downscale", "correct", "correct_isp"],
+        default="borrow",
+        help=(
+            "处理模式: borrow (默认, 邻居捐赠) / "
+            "raw (单通道 CFA) / raw_downscale / "
+            "correct (空间校正) / correct_isp (含 ISP 校正, 最慢)"
+        ),
     )
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="调试模式：用纯色显示每个三角形的通道分配（R=红 G=绿 B=蓝）",
+        help="调试模式: 用纯色显示每个三角形的通道分配 (R=红 G=绿 B=蓝)",
     )
     args = parser.parse_args()
 
-    process(args.input, args.output, triangle_side=args.side, debug_channels=args.debug)
+    process(args.input, args.output,
+            triangle_side=args.triangle_side,
+            debug_channels=args.debug,
+            mode=args.mode)
 
 
 if __name__ == "__main__":

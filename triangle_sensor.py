@@ -316,20 +316,52 @@ def compute_psnr(img, ref):
     return 20 * math.log10(255.0 / math.sqrt(mse))
 
 
-def compute_ssim(img, ref, k1=0.01, k2=0.03):
-    """SSIM (Structural Similarity) — 简化版"""
-    c1 = (k1 * 255) ** 2
-    c2 = (k2 * 255) ** 2
+def compute_ssim(img, ref, k1=0.01, k2=0.03, win_size=11):
+    """SSIM (Structural Similarity) — Wang et al. 2004 局部窗口版.
 
-    mu_x = img.mean()
-    mu_y = ref.mean()
-    sigma_x = img.std()
-    sigma_y = ref.std()
-    sigma_xy = np.mean((img - mu_x) * (ref - mu_y))
+    用 11×11 高斯加权滑动窗口 (sigma=1.5) 计算每像素 SSIM,
+    然后取整图均值. 支持单通道 (H,W) 或三通道 (H,W,3) 输入.
 
-    ssim_val = ((2 * mu_x * mu_y + c1) * (2 * sigma_xy + c2)) / \
-               ((mu_x ** 2 + mu_y ** 2 + c1) * (sigma_x ** 2 + sigma_y ** 2 + c2))
-    return float(ssim_val)
+    与旧"全局亮度/方差"近似版的区别:
+      - 旧版只看整图均值/方差, 不区分空间结构
+      - 新版对每个像素独立评估局部结构相似度, 更接近人眼感知
+
+    依赖: skimage (skimage.metrics.structural_similarity).
+    若 skimage 不可用, 自动降级到 8×8 均匀窗口 (仍非全局版).
+
+    返回: 标量 float, 范围 [-1, 1], 越高越好.
+    """
+    try:
+        from skimage.metrics import structural_similarity as _ssim
+        channel_axis = 2 if img.ndim == 3 else None
+        val = _ssim(
+            ref.astype(np.float64), img.astype(np.float64),
+            data_range=255.0,
+            win_size=win_size,
+            gaussian_weights=True,
+            sigma=1.5,
+            use_sample_covariance=False,
+            channel_axis=channel_axis,
+        )
+        return float(val)
+    except ImportError:
+        # 降级: 用 8×8 均匀窗口手算 (避免与旧版完全相同)
+        from scipy.ndimage import uniform_filter
+        a = img.astype(np.float64)
+        b = ref.astype(np.float64)
+        c1 = (k1 * 255) ** 2
+        c2 = (k2 * 255) ** 2
+        mu_a = uniform_filter(a, size=8)
+        mu_b = uniform_filter(b, size=8)
+        mu_a2 = mu_a * mu_a
+        mu_b2 = mu_b * mu_b
+        mu_ab = mu_a * mu_b
+        sigma_a2 = uniform_filter(a * a, size=8) - mu_a2
+        sigma_b2 = uniform_filter(b * b, size=8) - mu_b2
+        sigma_ab = uniform_filter(a * b, size=8) - mu_ab
+        ssim_map = ((2 * mu_ab + c1) * (2 * sigma_ab + c2)) / \
+                   ((mu_a2 + mu_b2 + c1) * (sigma_a2 + sigma_b2 + c2))
+        return float(ssim_map.mean())
 
 
 # ============================================================
