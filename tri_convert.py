@@ -137,7 +137,7 @@ def convert_image(img_path, sensor, output_dir, denoise=False, watermark=False):
 
 
 def convert_video(video_path, sensor, output_dir, frame_step=5,
-                  max_frames=200, denoise=False, watermark=False):
+                  max_frames=0, denoise=False, watermark=False):
     """转换视频文件 → 帧序列 .tri 目录."""
     if not HAS_CV2:
         print("  [跳过] 需要 OpenCV (pip install opencv-python)")
@@ -167,10 +167,10 @@ def convert_video(video_path, sensor, output_dir, frame_step=5,
     frame_idx = 0
     saved_count = 0
 
-    pbar = tqdm(total=min(total_frames, max_frames * frame_step),
+    pbar = tqdm(total=min(total_frames, (max_frames if max_frames > 0 else total_frames) * frame_step),
                 desc=f"  {stem}") if HAS_TQDM else None
 
-    while saved_count < max_frames:
+    while saved_count < max_frames or max_frames <= 0:
         ret, frame_bgr = cap.read()
         if not ret:
             break
@@ -373,8 +373,8 @@ def main():
                         help="输出目录, 默认 ./tri_output/")
     parser.add_argument("--frame-step", type=int, default=5,
                         help="视频每隔 N 帧取一帧, 默认 5")
-    parser.add_argument("--max-frames", type=int, default=200,
-                        help="每个视频最多取帧数, 默认 200")
+    parser.add_argument("--max-frames", type=int, default=0,
+                        help="每个视频最多取帧数, 0=不限制")
     parser.add_argument("--noise-iso", type=int, default=0,
                         help="ISO 噪声级别 (0=无噪声), 默认 0")
     parser.add_argument("--workers", type=int, default=4,

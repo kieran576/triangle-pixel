@@ -3,9 +3,46 @@ __pycache__/
 *.npz
 *.zip
 *.html
+*.egg-info/
 demo_output/
 real_photo_test/
 test_suite/
 bench_images/
 test_*.png
-*.egg-info/
+
+# Build artifacts
+apk/.gradle/
+apk/.idea/
+apk/app/build/
+apk/local.properties
+apk/build.gradle.kts.bak
+*.class
+
+# Unity
+unity/Library/
+unity/Temp/
+unity/Obj/
+unity/Build/
+unity/Logs/
+unity/UserSettings/
+unity/Assets/Plugins/
+
+# Test outputs (transient)
+tri_output/
+tri_test_output/
+tri_test_preview/
+tri_video_test/
+gui_test_output/
+test_video_input/
+
+# Gradle wrapper
+apk/gradle/
+apk/gradle.properties
+apk/gradlew.bat
+
+# Trained model checkpoints (large)
+tri_test_model.pt
+
+# Unity project folders (kept locally, not in repo)
+unity/
+unity_fixes/
