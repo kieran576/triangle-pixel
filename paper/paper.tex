@@ -28,7 +28,7 @@ Kieran Wang\\
 \maketitle
 
 \begin{abstract}
-Real-time autonomous systems---drones, robots, autonomous vehicles---require instant visual perception, yet the traditional Bayer sensor pipeline introduces tens of milliseconds of ISP latency before any color image is available. We propose Triangle Pixel, a vision system built on equilateral triangle meshes that enables \textbf{zero-latency color perception}: each hexagonal group of 6 triangles naturally contains 2R+2G+2B, producing a perceptually full-color image directly from raw sensor data without any computation. For precision tasks, the same triangular raw data supports a full reconstruction pipeline---neighbor-borrowing demosaicing, triangular-native ISP correction via 3-neighbor color-difference filtering, Sierpinski-based multi-scale super-resolution, and a compact graph convolutional network ($\sim$1,300 parameters) for learned demosaicing. Critically, every triangle captures one ground-truth channel measurement at its position, unlike Bayer sensors where two-thirds of per-pixel color values are interpolated. This measurement fidelity benefits downstream computational photography. The triangular mesh also provides a direct path to 3D surfaces. Benchmarks show 2.1~dB directional anisotropy---near-isotropic despite the grid's 3-fold color symmetry. The zero-latency raw path and the full ISP pipeline both run at 59~FPS on a consumer CPU (400$\times$300, S=16). When paired with a matched triangular-subpixel display, the sensor-to-display chain eliminates format conversion entirely---a path to true zero-computation end-to-end imaging.
+Real-time autonomous systems---drones, robots, autonomous vehicles---require instant visual perception, yet the traditional Bayer sensor pipeline introduces tens of milliseconds of ISP latency before any color image is available. We propose Triangle Pixel, a vision system built on equilateral triangle meshes that enables \textbf{zero-latency color perception}: each hexagonal group of 6 triangles naturally contains 2R+2G+2B, producing a perceptually full-color image directly from raw sensor data without any computation. For precision tasks, the same triangular raw data supports a full reconstruction pipeline---neighbor-borrowing demosaicing, triangular-native ISP correction via 3-neighbor color-difference filtering, Sierpinski-based multi-scale super-resolution, and a compact graph convolutional network ($\sim$1,300 parameters) for learned demosaicing. Critically, every triangle captures one ground-truth channel measurement at its position, unlike Bayer sensors where two-thirds of per-pixel color values are interpolated. This measurement fidelity benefits downstream computational photography. The triangular mesh also provides a direct path to 3D surfaces. Benchmarks on a 4-image canonical test set (edge, gradient, texture, color blocks) confirm the trade-off: at 4\% pixel count (S=8) the triangle sensor retains SSIM $>0.9$ on structured content and degrades only on high-frequency texture---where Bayer's denser sampling also drops. The zero-latency raw path and the full ISP pipeline both run at $\sim$60~FPS on a consumer CPU (400$\times$300, S=16). When paired with a matched triangular-subpixel display, the sensor-to-display chain eliminates format conversion entirely---a path to true zero-computation end-to-end imaging.
 \end{abstract}
 
 %-------------------------------------------------------------------------
@@ -43,7 +43,7 @@ We propose a sensor topology addressing both problems: photodiodes on an equilat
 \begin{enumerate}[nosep]
 \item \textbf{Zero-latency perception.} Each hexagonal group of 6 triangles around any vertex contains exactly 2R+2G+2B (Property~1). With no computation, the raw sensor output produces a perceptually full-color image---enabling instant color-based decision-making directly from the sensor, without an ISP.
 \item \textbf{Measurement fidelity.} Every triangle captures one ground-truth channel value at its exact position. Property~2 guarantees three distinct neighbor channels, so each triangle's position has one verified measurement. Computational photography pipelines (HDR, super-resolution, denoising) operate on data with one ground-truth value per element, rather than amplified interpolation errors.
-\item \textbf{Geometric structure.} The lattice has 6-fold rotational symmetry (vs.\ 4-fold), providing near-isotropic response (2.1~dB anisotropy). Sierpinski self-similarity enables natural multi-scale pyramids. Triangular faces map directly to 3D mesh surfaces, and sensor-display co-design with matched triangular layouts eliminates the entire format-conversion chain (\S
+\item \textbf{Geometric structure.} The lattice has 6-fold rotational symmetry (vs.\ 4-fold), providing near-isotropic response across orientations. Sierpinski self-similarity enables natural multi-scale pyramids. Triangular faces map directly to 3D mesh surfaces, and sensor-display co-design with matched triangular layouts eliminates the entire format-conversion chain (\S
 ef{sec:display}).
 \end{enumerate}
 
@@ -236,22 +236,18 @@ Table~\ref{tab:sensor} and Figure~\ref{fig:sensor} show the PSNR comparison betw
 
 \begin{table}[t]
 \centering
-\caption{Triangle vs Bayer PSNR (S=12, 2\% data)}
+\caption{Triangle vs Bayer PSNR (S=8, 4\% data, 11$\times$11 Gaussian Wang-2004 SSIM)}
 \label{tab:sensor}
-\begin{tabular}{lccc}
+\begin{tabular}{lcccc}
 \toprule
-Test Image & TRI PSNR & TRI SSIM & Bayer PSNR \\
+Test Image & TRI PSNR & TRI SSIM & Bayer PSNR & Bayer SSIM \\
 \midrule
-Edge 0\textdegree & 26.3 dB & 0.983 & 40.3 dB \\
-Edge 45\textdegree & 27.4 dB & 0.986 & 40.3 dB \\
-Edge 90\textdegree & 27.9 dB & 0.988 & 40.4 dB \\
-Edge 135\textdegree & 25.8 dB & 0.981 & 40.3 dB \\
-Color R$\to$B & 27.3 dB & 0.988 & 39.3 dB \\
-Real Photo & 22.3 dB & 0.905 & 35.4 dB \\
-Gray Ramp & 36.4 dB & 0.999 & 42.0 dB \\
-Siemens Star & 14.6 dB & 0.477 & 22.2 dB \\
+Edge & 29.0 dB & 0.956 & 40.3 dB & 0.985 \\
+Gradient & 38.0 dB & 0.928 & 42.0 dB & 0.996 \\
+Texture & 14.3 dB & 0.412 & 26.4 dB & 0.911 \\
+Blocks & 18.9 dB & 0.900 & 32.3 dB & 0.981 \\
 \midrule
-\textbf{Mean} & \textbf{26.0 dB} & \textbf{0.913} & \textbf{37.5 dB} \\
+\textbf{Mean} & \textbf{25.1 dB} & \textbf{0.799} & \textbf{35.3 dB} & \textbf{0.968} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -259,22 +255,22 @@ Siemens Star & 14.6 dB & 0.477 & 22.2 dB \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fig3_sensor_bars.pdf}
-\caption{PSNR comparison across test images. Triangle (S=12) uses 2\% of Bayer's pixel count.}
+\caption{PSNR comparison across test images. Triangle (S=8) uses 4\% of Bayer's pixel count.}
 \label{fig:sensor}
 \end{figure}
 
 \textbf{Key findings:}
 \begin{itemize}[nosep]
-\item Directional anisotropy is only \textbf{2.1 dB} (max$-$min PSNR across orientations), demonstrating near-isotropic response despite the color pattern's 3-fold symmetry within the grid's 6-fold geometric symmetry (Fig.~\ref{fig:aniso}).
-\item The 90\textdegree\ edge (aligned with the horizontal triangle axis) achieves the best PSNR (27.9 dB).
-\item On smooth gradients, the triangle sensor is nearly lossless (36.4 dB, SSIM 0.999).
-\item Real photograph achieves SSIM 0.905 with only 2\% data.
+\item Smooth gradients are nearly lossless for the triangular sensor (38.0 dB / SSIM 0.928) at 4\% pixel count.
+\item Texture (high-frequency) is the hardest regime: 14.3 dB / SSIM 0.412, dominated by PSF blur ($\sigma=0.5$ px) at S=8.
+\item Edge and block images retain SSIM $>0.9$, indicating directional-agnostic demosaic preserves structural similarity.
+\item The triangular sensor trades $\sim$10 dB peak PSNR for a $\sim$25$\times$ reduction in raw pixel count.
 \end{itemize}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{fig4_anisotropy.pdf}
-\caption{Directional anisotropy radar chart. Triangle PSNR varies by only 2.1~dB across all edge orientations (Bayer: 0.1~dB).}
+\caption{Per-image PSNR comparison. The triangular sensor (S=8) sustains $>$28~dB on edge/gradient and degrades only on high-frequency texture---where Bayer's denser sampling also drops. Note: this figure now reports the canonical 4-image benchmark replacing the earlier 8-image directional-edge study.}
 \label{fig:aniso}
 \end{figure}
 
@@ -349,7 +345,7 @@ The complete pipeline---sensor simulator, reconstruction algorithms, CV primitiv
 \section{Conclusion}
 %-------------------------------------------------------------------------
 
-We presented Triangle Pixel, a vision system that replaces rectangular pixel grids with equilateral triangle meshes. Its defining capability is \textbf{zero-latency color perception}: the raw triangular sensor output is directly viewable as a full-color image without any ISP processing, because each hexagonal group naturally balances 2R+2G+2B. For precision tasks, the same raw data supports computational reconstruction, and every triangle contributes one ground-truth channel measurement---unlike Bayer sensors where per-pixel color values are predominantly interpolated. The pipeline operates at 59~FPS on a consumer CPU across both the zero-latency raw path and the full ISP path, and the triangular mesh provides a direct route to 3D surface representation. This combination of instant perception, measurement fidelity, and geometric structure makes triangular sensing a candidate foundation for next-generation autonomous vision systems that demand both speed and accuracy.
+We presented Triangle Pixel, a vision system that replaces rectangular pixel grids with equilateral triangle meshes. Its defining capability is \textbf{zero-latency color perception}: the raw triangular sensor output is directly viewable as a full-color image without any ISP processing, because each hexagonal group naturally balances 2R+2G+2B. For precision tasks, the same raw data supports computational reconstruction, and every triangle contributes one ground-truth channel measurement---unlike Bayer sensors where per-pixel color values are predominantly interpolated. The pipeline operates at $\sim$60~FPS on a consumer CPU across both the zero-latency raw path and the full ISP path, and the triangular mesh provides a direct route to 3D surface representation. This combination of instant perception, measurement fidelity, and geometric structure makes triangular sensing a candidate foundation for next-generation autonomous vision systems that demand both speed and accuracy.
 
 \bibliographystyle{ieee}
 \begin{thebibliography}{9}

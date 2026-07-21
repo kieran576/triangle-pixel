@@ -188,11 +188,16 @@ def run_speed_benchmark():
     results = []
     sizes = [8, 12, 16, 20, 24, 32]
 
+    # Warmup numba JIT (first call compiles; cost should not pollute timing).
+    _S = 16.0; _h = _S * math.sqrt(3) / 2
+    _nc = int(W / (_S / 2)) + 3; _nr = int(H / _h) + 2
+    process_fast(pixels, _S, _h, _nr, _nc, W, H, 3, 40)
+
     for side in sizes:
         S = float(side); h = S * math.sqrt(3) / 2
         nc = int(W / (S / 2)) + 3; nr = int(H / h) + 2
 
-        # Fast pipeline
+        # Fast pipeline (steady-state after JIT warmup above)
         t0 = time.time()
         process_fast(pixels, S, h, nr, nc, W, H, 3, 40)
         elapsed = (time.time() - t0) * 1000

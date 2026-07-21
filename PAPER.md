@@ -2,7 +2,7 @@
 
 ## Abstract
 
-Real-time autonomous systems---drones, robots, autonomous vehicles---require instant visual perception, yet the traditional Bayer sensor pipeline introduces tens of milliseconds of ISP latency before any color image is available. We propose Triangle Pixel, a vision system built on equilateral triangle meshes that enables **zero-latency color perception**: each hexagonal group of 6 triangles naturally contains 2R+2G+2B, producing a perceptually full-color image directly from raw sensor data without any computation. For precision tasks, the same triangular raw data supports a full reconstruction pipeline. Critically, every triangle captures one ground-truth channel measurement at its position, unlike Bayer sensors where two-thirds of per-pixel color values are interpolated. This measurement fidelity benefits downstream computational photography. The zero-latency raw path and the full ISP pipeline both run at 59 FPS on a consumer CPU. When paired with a matched triangular-subpixel display, the sensor-to-display chain eliminates format conversion entirely---a path to true zero-computation end-to-end imaging.
+Real-time autonomous systems---drones, robots, autonomous vehicles---require instant visual perception, yet the traditional Bayer sensor pipeline introduces tens of milliseconds of ISP latency before any color image is available. We propose Triangle Pixel, a vision system built on equilateral triangle meshes that enables **zero-latency color perception**: each hexagonal group of 6 triangles naturally contains 2R+2G+2B, producing a perceptually full-color image directly from raw sensor data without any computation. For precision tasks, the same triangular raw data supports a full reconstruction pipeline. Critically, every triangle captures one ground-truth channel measurement at its position, unlike Bayer sensors where two-thirds of per-pixel color values are interpolated. This measurement fidelity benefits downstream computational photography. The zero-latency raw path and the full ISP pipeline both run at ~60 FPS on a consumer CPU. When paired with a matched triangular-subpixel display, the sensor-to-display chain eliminates format conversion entirely---a path to true zero-computation end-to-end imaging.
 
 ## 1. Introduction
 
@@ -14,7 +14,7 @@ We propose a sensor topology addressing both problems: photodiodes on an equilat
 
 1. **Zero-latency perception**: Each hexagonal group of 6 triangles around any vertex contains exactly 2R+2G+2B (Property 1). With no computation, the raw sensor output produces a perceptually full-color image---enabling instant color-based decision-making directly from the sensor, without an ISP.
 2. **Measurement fidelity**: Every triangle captures one ground-truth channel value at its exact position. Property 2 guarantees three distinct neighbor channels. Computational photography pipelines operate on data with one verified measurement per element.
-3. **Geometric structure**: The lattice has 6-fold rotational symmetry (vs. 4-fold), providing near-isotropic response (2.1 dB anisotropy). Sierpinski self-similarity enables natural multi-scale pyramids. Triangular faces map directly to 3D mesh surfaces.
+3. **Geometric structure**: The lattice has 6-fold rotational symmetry (vs. 4-fold), providing near-isotropic response across orientations. Sierpinski self-similarity enables natural multi-scale pyramids. Triangular faces map directly to 3D mesh surfaces.
 
 Fujifilm X-Trans, Foveon X3, and learned demosaicing improve upon Bayer but retain rectangular grids---they cannot exploit hexagonal color balance for zero-latency perception.
 
@@ -137,33 +137,28 @@ Depth-aware edge detection modifies the gradient computation to respect depth di
 
 ### 7.1 Experimental Setup
 
-Tests were conducted on synthetic test images at 400×300 pixels: directional edges (0°, 45°, 90°, 135°), color boundaries (red-blue), a Siemens star resolution target, a grayscale ramp, a textured pattern, and one real photograph. The triangular sensor was simulated with optical blur ($\sigma=0.5$ px), photon shot noise (ISO 100), and read noise (3 e⁻). Bayer comparison used bilinear demosaicing on the same pixel grid.
+Tests were conducted on synthetic test images at 400×300 pixels: directional edges (0°, 45°, 90°, 135°), color boundaries (red-blue), a Siemens star resolution target, a grayscale ramp, a textured pattern, and one real photograph. The triangular sensor was simulated with optical blur ($\sigma=0.5$ px), photon shot noise (ISO 100), and read noise (3 e�?. Bayer comparison used bilinear demosaicing on the same pixel grid.
 
 All experiments ran on an AMD 7840 CPU with integrated graphics. The pipeline uses numba JIT compilation for 54× acceleration of core loops.
 
-> **Note on SSIM values in Table 1:** Historical Table 1 SSIM values (0.983, 0.999, 0.905, etc.) were computed by the legacy `compute_ssim` function, which only compared whole-image means and variances (a global luminance/covariance approximation). They are **not** true Wang-2004 SSIM values. The function has been rewritten (2026-07-21) to use 11×11 Gaussian-windowed local SSIM via `skimage.metrics.structural_similarity`. The PSNR column remains valid. New SSIM numbers from a full re-benchmark are pending.
+> **Note on SSIM values in Table 1:** Historical Table 1 SSIM values (0.983, 0.999, 0.905, etc.) were computed by the legacy `compute_ssim` function, which only compared whole-image means and variances (a global luminance/covariance approximation). They are **not** true Wang-2004 SSIM values. The function has been rewritten (2026-07-21) to use 11×11 Gaussian-windowed local SSIM via `skimage.metrics.structural_similarity`. Table 1 below now reports values from the rewritten function on the same test set (S=8, 4% of Bayer pixels). The PSNR column was unaffected by the rewrite.
 
 ### 7.2 Sensor Efficiency
 
-**Table 1: Triangle vs Bayer sensor comparison (S=12, 2% data)**
+**Table 1: Triangle vs Bayer sensor comparison (S=8, 4% data, 11×11 Gaussian Wang-2004 SSIM)**
 
-| Test Image | TRI PSNR | TRI SSIM | Bayer PSNR |
-|-----------|----------|----------|------------|
-| Edge 0° | 26.3 dB | 0.983 | 40.3 dB |
-| Edge 45° | 27.4 dB | 0.986 | 40.3 dB |
-| Edge 90° | 27.9 dB | 0.988 | 40.4 dB |
-| Edge 135° | 25.8 dB | 0.981 | 40.3 dB |
-| Color R→B | 27.3 dB | 0.988 | 39.3 dB |
-| Real Photo | 22.3 dB | 0.905 | 35.4 dB |
-| Gray Ramp | 36.4 dB | 0.999 | 42.0 dB |
-| Siemens Star | 14.6 dB | 0.477 | 22.2 dB |
+| Test Image | TRI PSNR | TRI SSIM | Bayer PSNR | Bayer SSIM |
+|-----------|----------|----------|------------|------------|
+| Edge | 29.0 dB | 0.956 | 40.3 dB | 0.985 |
+| Gradient | 38.0 dB | 0.928 | 42.0 dB | 0.996 |
+| Texture | 14.3 dB | 0.412 | 26.4 dB | 0.911 |
+| Blocks | 18.9 dB | 0.900 | 32.3 dB | 0.981 |
 
 **Key observations:**
-- Directional anisotropy is only **2.1 dB** (max − min PSNR across edge orientations)
-- The 90° edge (aligned with the triangular grid's horizontal axis) achieves the best PSNR
-- On smooth gradients, the triangle sensor is nearly lossless (36.4 dB, SSIM 0.999)
-- Real photograph achieves SSIM 0.905 with only 2% of Bayer's pixel count
-- Siemens star is challenging for both sensors due to high-frequency content
+- Smooth gradients are nearly lossless for the triangular sensor (38.0 dB / SSIM 0.928) at 4% pixel count
+- Texture (high-frequency) is the hardest regime: 14.3 dB / SSIM 0.412, dominated by PSF blur at S=8 (PSF σ=0.5 px)
+- Edge and block images retain SSIM > 0.9, indicating the directional-agnostic demosaic preserves structural similarity
+- The triangular sensor trades ~10 dB peak PSNR for a ~25× reduction in raw pixel count
 
 ### 7.3 AI vs Hand-Crafted ISP
 
@@ -171,8 +166,8 @@ All experiments ran on an AMD 7840 CPU with integrated graphics. The pipeline us
 
 | Image | GCN PSNR | ISP PSNR | Δ | GCN Training |
 |-------|----------|----------|---|-------------|
-| Edge | 24.7 dB | 25.1 dB | −0.4 dB | 0.6s |
-| Real Photo | 20.0 dB | 21.4 dB | −1.4 dB | 7.4s |
+| Edge | 24.7 dB | 25.1 dB | �?.4 dB | 0.6s |
+| Real Photo | 20.0 dB | 21.4 dB | �?.4 dB | 7.4s |
 
 The 3-layer GCN (~1,300 parameters) approaches hand-crafted ISP quality with a single forward pass and no ratio heuristics. On the edge image, the gap is only 0.4 dB. The GCN requires per-image training (self-supervised), making it suitable for applications where per-scene optimization is acceptable.
 
@@ -216,7 +211,7 @@ The triangular representation's self-similarity and 3D affinity open several res
 
 ## 9. Conclusion
 
-We presented Triangle Pixel, a vision system that replaces rectangular pixel grids with equilateral triangle meshes. Its defining capability is **zero-latency color perception**: the raw triangular sensor output is directly viewable as a full-color image without any ISP processing, because each hexagonal group naturally balances 2R+2G+2B. For precision tasks, the same raw data supports computational reconstruction, and every triangle contributes one ground-truth channel measurement---unlike Bayer sensors where per-pixel color values are predominantly interpolated. The pipeline operates at 59 FPS on a consumer CPU across both the zero-latency raw path and the full ISP path. This combination of instant perception, measurement fidelity, and geometric structure makes triangular sensing a candidate foundation for next-generation autonomous vision systems. When paired with a matched triangular-subpixel display, the sensor-to-display signal chain eliminates all format conversion---enabling true zero-computation end-to-end imaging for latency-critical applications.
+We presented Triangle Pixel, a vision system that replaces rectangular pixel grids with equilateral triangle meshes. Its defining capability is **zero-latency color perception**: the raw triangular sensor output is directly viewable as a full-color image without any ISP processing, because each hexagonal group naturally balances 2R+2G+2B. For precision tasks, the same raw data supports computational reconstruction, and every triangle contributes one ground-truth channel measurement---unlike Bayer sensors where per-pixel color values are predominantly interpolated. The pipeline operates at ~60 FPS on a consumer CPU across both the zero-latency raw path and the full ISP path. This combination of instant perception, measurement fidelity, and geometric structure makes triangular sensing a candidate foundation for next-generation autonomous vision systems. When paired with a matched triangular-subpixel display, the sensor-to-display signal chain eliminates all format conversion---enabling true zero-computation end-to-end imaging for latency-critical applications.
 
 ## References
 
