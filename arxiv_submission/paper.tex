@@ -351,6 +351,20 @@ We validate the temporal stability of the L3 ISP on synthesized video sequences 
 
 These measurements confirm that the borrow + ISP pipeline introduces no spurious temporal artifacts: every inter-frame change traces back to a corresponding scene change. This property is critical for zero-latency perception pipelines where phantom motion (frame-to-frame ISP flicker, demosaicing artifacts at moving edges) directly degrades downstream control loops.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\columnwidth]{demo_temporal_static.gif}
+\caption{Static-scene temporal consistency: 30 frames of the same scene through the L3 ISP produce a uniformly white frame-difference heatmap (all pixels $\approx$ 0), confirming bit-exact temporal stability when the scene does not change.}
+\label{fig:temporal_static}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\columnwidth]{demo_temporal_translating.gif}
+\caption{Translating-scene temporal consistency: under uniform horizontal pan, frame-difference heatmap highlights only the moving edges (red), while stationary background remains white. No spurious flicker is introduced by the borrow or ISP stages.}
+\label{fig:temporal_translating}
+\end{figure}
+
 \subsection{Reproducibility}
 The complete pipeline---sensor simulator, reconstruction algorithms, CV primitives, and GCN training---is available as open-source Python code at \url{https://github.com/kieran576/triangle-pixel}.
 
