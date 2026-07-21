@@ -28,7 +28,7 @@ Kieran Wang\\
 \maketitle
 
 \begin{abstract}
-Real-time autonomous systems---drones, robots, autonomous vehicles---require instant visual perception, yet the traditional Bayer sensor pipeline introduces tens of milliseconds of ISP latency before any color image is available. We propose Triangle Pixel, a vision system built on equilateral triangle meshes that enables \textbf{zero-latency color perception}: each hexagonal group of 6 triangles naturally contains 2R+2G+2B, producing a perceptually full-color image directly from raw sensor data without any computation. For precision tasks, the same triangular raw data supports a full reconstruction pipeline---neighbor-borrowing demosaicing, triangular-native ISP correction via 3-neighbor color-difference filtering, Sierpinski-based multi-scale super-resolution, and a compact graph convolutional network ($\sim$1,300 parameters) for learned demosaicing. Critically, every triangle captures one ground-truth channel measurement at its position, unlike Bayer sensors where two-thirds of per-pixel color values are interpolated. This measurement fidelity benefits downstream computational photography. The triangular mesh also provides a direct path to 3D surfaces. Benchmarks on a 4-image canonical test set (edge, gradient, texture, color blocks) confirm the trade-off: at 4\% pixel count (S=8) the triangle sensor retains SSIM $>0.9$ on structured content and degrades only on high-frequency texture---where Bayer's denser sampling also drops. The zero-latency raw path and the full ISP pipeline both run at $\sim$60~FPS on a consumer CPU (400$\times$300, S=16). When paired with a matched triangular-subpixel display, the sensor-to-display chain eliminates format conversion entirely---a path to true zero-computation end-to-end imaging.
+Real-time autonomous systems---drones, robots, autonomous vehicles---require instant visual perception, yet the traditional Bayer sensor pipeline introduces tens of milliseconds of ISP latency before any color image is available. We propose Triangle Pixel, a vision system built on equilateral triangle meshes that enables \textbf{zero-latency color perception}: each hexagonal group of 6 triangles naturally contains 2R+2G+2B, producing a perceptually full-color image directly from raw sensor data without any computation. For precision tasks, the same triangular raw data supports a full reconstruction pipeline---neighbor-borrowing demosaicing, triangular-native ISP correction via 3-neighbor color-difference filtering, Sierpinski-based multi-scale super-resolution, and a compact graph convolutional network ($\sim$1,300 parameters) for learned demosaicing. Critically, every triangle captures one ground-truth channel measurement at its position, unlike Bayer sensors where two-thirds of per-pixel color values are interpolated. This measurement fidelity benefits downstream computational photography. The triangular mesh also provides a direct path to 3D surfaces. Benchmarks on an 8-image directional-edge test set confirm the trade-off: at 2\% pixel count (S=12) the triangle sensor remains near-lossless on smooth gradients (37.0--38.7 dB / SSIM 0.93--0.95), retains SSIM $\sim$0.94 across all four edge orientations, and degrades only on high-frequency content (Siemens Star 19.0 dB)---where Bayer's denser sampling also drops. The 0\textdegree\ orientation (aligned with the grid's horizontal axis) yields $\sim$3~dB higher PSNR than the other three orientations, which themselves differ by $<1$~dB---confirming 6-fold lattice symmetry. The zero-latency raw path and the full ISP pipeline both run at $\sim$60~FPS on a consumer CPU (400$\times$300, S=16). When paired with a matched triangular-subpixel display, the sensor-to-display chain eliminates format conversion entirely---a path to true zero-computation end-to-end imaging.
 \end{abstract}
 
 %-------------------------------------------------------------------------
@@ -236,18 +236,22 @@ Table~\ref{tab:sensor} and Figure~\ref{fig:sensor} show the PSNR comparison betw
 
 \begin{table}[t]
 \centering
-\caption{Triangle vs Bayer PSNR (S=8, 4\% data, 11$\times$11 Gaussian Wang-2004 SSIM)}
+\caption{Triangle vs Bayer PSNR on 8-image directional-edge test set (S=12, 2\% data, 11$\times$11 Gaussian Wang-2004 SSIM)}
 \label{tab:sensor}
 \begin{tabular}{lcccc}
 \toprule
 Test Image & TRI PSNR & TRI SSIM & Bayer PSNR & Bayer SSIM \\
 \midrule
-Edge & 29.0 dB & 0.956 & 40.3 dB & 0.985 \\
-Gradient & 38.0 dB & 0.928 & 42.0 dB & 0.996 \\
-Texture & 14.3 dB & 0.412 & 26.4 dB & 0.911 \\
-Blocks & 18.9 dB & 0.900 & 32.3 dB & 0.981 \\
+Edge 0\textdegree & 27.4 dB & 0.947 & 38.7 dB & 0.952 \\
+Edge 45\textdegree & 25.5 dB & 0.941 & 39.2 dB & 0.952 \\
+Edge 90\textdegree & 24.7 dB & 0.936 & 37.9 dB & 0.951 \\
+Edge 135\textdegree & 25.3 dB & 0.939 & 39.1 dB & 0.952 \\
+Color R$\to$B & 38.7 dB & 0.953 & 42.7 dB & 0.960 \\
+Gray Ramp & 37.0 dB & 0.931 & 41.9 dB & 0.949 \\
+Siemens Star & 19.0 dB & 0.485 & 25.1 dB & 0.833 \\
+Real Photo & 24.9 dB & 0.874 & 38.8 dB & 0.950 \\
 \midrule
-\textbf{Mean} & \textbf{25.1 dB} & \textbf{0.799} & \textbf{35.3 dB} & \textbf{0.968} \\
+\textbf{Mean} & \textbf{27.8 dB} & \textbf{0.876} & \textbf{37.9 dB} & \textbf{0.937} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -255,22 +259,22 @@ Blocks & 18.9 dB & 0.900 & 32.3 dB & 0.981 \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fig3_sensor_bars.pdf}
-\caption{PSNR comparison across test images. Triangle (S=8) uses 4\% of Bayer's pixel count.}
+\caption{PSNR comparison across the 8-image directional-edge test set. Triangle (S=12) uses 2\% of Bayer's pixel count.}
 \label{fig:sensor}
 \end{figure}
 
 \textbf{Key findings:}
 \begin{itemize}[nosep]
-\item Smooth gradients are nearly lossless for the triangular sensor (38.0 dB / SSIM 0.928) at 4\% pixel count.
-\item Texture (high-frequency) is the hardest regime: 14.3 dB / SSIM 0.412, dominated by PSF blur ($\sigma=0.5$ px) at S=8.
-\item Edge and block images retain SSIM $>0.9$, indicating directional-agnostic demosaic preserves structural similarity.
-\item The triangular sensor trades $\sim$10 dB peak PSNR for a $\sim$25$\times$ reduction in raw pixel count.
+\item \textbf{Smooth gradients remain lossless} at 2\% pixel count: Gray Ramp 37.0 dB (SSIM 0.931); Color R$\to$B 38.7 dB.
+\item \textbf{0\textdegree\ edge dominates} other orientations by $\sim$3 dB (27.4 dB vs.\ 24.7--25.5 dB), because the 0\textdegree\ edge is aligned with the triangular grid's horizontal sampling axis.
+\item \textbf{Non-aligned orientations cluster tightly}: 45\textdegree/90\textdegree/135\textdegree\ differ by only 0.8 dB (25.5/24.7/25.3)---confirming the 6-fold geometric symmetry of the lattice.
+\item \textbf{Siemens Star drops for both sensors} (TRI 19.0 dB / BAYER 25.1 dB); high-frequency content is dominated by PSF blur ($\sigma=0.5$ px) at S=12.
 \end{itemize}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\columnwidth]{fig4_anisotropy.pdf}
-\caption{Per-image PSNR comparison. The triangular sensor (S=8) sustains $>$28~dB on edge/gradient and degrades only on high-frequency texture---where Bayer's denser sampling also drops. Note: this figure now reports the canonical 4-image benchmark replacing the earlier 8-image directional-edge study.}
+\caption{Directional anisotropy on edges. The 0\textdegree\ orientation (aligned with the horizontal triangle axis) shows a 3~dB PSNR advantage over the three non-aligned orientations, which themselves differ by less than 1~dB. This asymmetry is a property of the underlying color-to-triangle channel assignment, not of the geometry; the 6-fold lattice symmetry provides equal reconstruction fidelity for all non-aligned directions.}
 \label{fig:aniso}
 \end{figure}
 

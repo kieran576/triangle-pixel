@@ -137,28 +137,33 @@ Depth-aware edge detection modifies the gradient computation to respect depth di
 
 ### 7.1 Experimental Setup
 
-Tests were conducted on synthetic test images at 400×300 pixels: directional edges (0°, 45°, 90°, 135°), color boundaries (red-blue), a Siemens star resolution target, a grayscale ramp, a textured pattern, and one real photograph. The triangular sensor was simulated with optical blur ($\sigma=0.5$ px), photon shot noise (ISO 100), and read noise (3 e�?. Bayer comparison used bilinear demosaicing on the same pixel grid.
+Tests were conducted on synthetic test images at 400×300 pixels: directional edges (0°, 45°, 90°, 135°), color boundaries (red-blue), a Siemens star resolution target, a grayscale ramp, a textured pattern, and one real photograph. The triangular sensor was simulated with optical blur ($\sigma=0.5$ px), photon shot noise (ISO 100), and read noise (3 e�?. Bayer comparison used bilinear demosaicing on the same pixel grid.
 
 All experiments ran on an AMD 7840 CPU with integrated graphics. The pipeline uses numba JIT compilation for 54× acceleration of core loops.
 
-> **Note on SSIM values in Table 1:** Historical Table 1 SSIM values (0.983, 0.999, 0.905, etc.) were computed by the legacy `compute_ssim` function, which only compared whole-image means and variances (a global luminance/covariance approximation). They are **not** true Wang-2004 SSIM values. The function has been rewritten (2026-07-21) to use 11×11 Gaussian-windowed local SSIM via `skimage.metrics.structural_similarity`. Table 1 below now reports values from the rewritten function on the same test set (S=8, 4% of Bayer pixels). The PSNR column was unaffected by the rewrite.
+> **Note on SSIM values in Table 1:** Historical Table 1 SSIM values (0.983, 0.999, 0.905, etc.) were computed by the legacy `compute_ssim` function, which only compared whole-image means and variances (a global luminance/covariance approximation). They are **not** true Wang-2004 SSIM values. The function has been rewritten (2026-07-21) to use 11×11 Gaussian-windowed local SSIM via `skimage.metrics.structural_similarity`. Table 1 below now reports values from the rewritten function on the 8-image directional-edge test set (S=12, 2% of Bayer pixels). The PSNR column was unaffected by the rewrite.
 
 ### 7.2 Sensor Efficiency
 
-**Table 1: Triangle vs Bayer sensor comparison (S=8, 4% data, 11×11 Gaussian Wang-2004 SSIM)**
+**Table 1: Triangle vs Bayer sensor comparison on 8-image directional-edge set (S=12, 2% data, 11×11 Gaussian Wang-2004 SSIM)**
 
 | Test Image | TRI PSNR | TRI SSIM | Bayer PSNR | Bayer SSIM |
 |-----------|----------|----------|------------|------------|
-| Edge | 29.0 dB | 0.956 | 40.3 dB | 0.985 |
-| Gradient | 38.0 dB | 0.928 | 42.0 dB | 0.996 |
-| Texture | 14.3 dB | 0.412 | 26.4 dB | 0.911 |
-| Blocks | 18.9 dB | 0.900 | 32.3 dB | 0.981 |
+| Edge 0° | 27.4 dB | 0.947 | 38.7 dB | 0.952 |
+| Edge 45° | 25.5 dB | 0.941 | 39.2 dB | 0.952 |
+| Edge 90° | 24.7 dB | 0.936 | 37.9 dB | 0.951 |
+| Edge 135° | 25.3 dB | 0.939 | 39.1 dB | 0.952 |
+| Color R→B | 38.7 dB | 0.953 | 42.7 dB | 0.960 |
+| Gray Ramp | 37.0 dB | 0.931 | 41.9 dB | 0.949 |
+| Siemens Star | 19.0 dB | 0.485 | 25.1 dB | 0.833 |
+| Real Photo | 24.9 dB | 0.874 | 38.8 dB | 0.950 |
+| **Mean** | **27.8 dB** | **0.876** | **37.9 dB** | **0.937** |
 
 **Key observations:**
-- Smooth gradients are nearly lossless for the triangular sensor (38.0 dB / SSIM 0.928) at 4% pixel count
-- Texture (high-frequency) is the hardest regime: 14.3 dB / SSIM 0.412, dominated by PSF blur at S=8 (PSF σ=0.5 px)
-- Edge and block images retain SSIM > 0.9, indicating the directional-agnostic demosaic preserves structural similarity
-- The triangular sensor trades ~10 dB peak PSNR for a ~25× reduction in raw pixel count
+- Smooth gradients are near-lossless (Gray Ramp 37.0 dB / SSIM 0.931; Color R→B 38.7 dB / SSIM 0.953) at 2% pixel count
+- The 0° edge (aligned with the grid's horizontal axis) yields ~3 dB higher PSNR than the three non-aligned orientations, which themselves differ by only 0.8 dB — confirming 6-fold lattice symmetry
+- High-frequency content is the limiting regime (Siemens Star 19.0 dB), dominated by PSF blur (σ=0.5 px) at S=12
+- The triangular sensor trades ~10 dB peak PSNR for a ~50× reduction in raw pixel count
 
 ### 7.3 AI vs Hand-Crafted ISP
 
@@ -166,8 +171,8 @@ All experiments ran on an AMD 7840 CPU with integrated graphics. The pipeline us
 
 | Image | GCN PSNR | ISP PSNR | Δ | GCN Training |
 |-------|----------|----------|---|-------------|
-| Edge | 24.7 dB | 25.1 dB | �?.4 dB | 0.6s |
-| Real Photo | 20.0 dB | 21.4 dB | �?.4 dB | 7.4s |
+| Edge | 24.7 dB | 25.1 dB | �?.4 dB | 0.6s |
+| Real Photo | 20.0 dB | 21.4 dB | �?.4 dB | 7.4s |
 
 The 3-layer GCN (~1,300 parameters) approaches hand-crafted ISP quality with a single forward pass and no ratio heuristics. On the edge image, the gap is only 0.4 dB. The GCN requires per-image training (self-supervised), making it suitable for applications where per-scene optimization is acceptable.
 

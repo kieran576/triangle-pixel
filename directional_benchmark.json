@@ -1,0 +1,166 @@
+{
+  "s8": [
+    {
+      "image": "edge_0",
+      "side": 8,
+      "tri_psnr": 31.79,
+      "tri_ssim": 0.9476,
+      "bayer_psnr": 38.74,
+      "bayer_ssim": 0.9522,
+      "delta_psnr": 6.94,
+      "time_s": 3.36
+    },
+    {
+      "image": "edge_45",
+      "side": 8,
+      "tri_psnr": 27.25,
+      "tri_ssim": 0.9374,
+      "bayer_psnr": 39.22,
+      "bayer_ssim": 0.9519,
+      "delta_psnr": 11.97,
+      "time_s": 3.04
+    },
+    {
+      "image": "edge_90",
+      "side": 8,
+      "tri_psnr": 26.88,
+      "tri_ssim": 0.9325,
+      "bayer_psnr": 37.94,
+      "bayer_ssim": 0.9509,
+      "delta_psnr": 11.06,
+      "time_s": 3.1
+    },
+    {
+      "image": "edge_135",
+      "side": 8,
+      "tri_psnr": 27.16,
+      "tri_ssim": 0.9368,
+      "bayer_psnr": 39.1,
+      "bayer_ssim": 0.9518,
+      "delta_psnr": 11.95,
+      "time_s": 3.04
+    },
+    {
+      "image": "color_rb",
+      "side": 8,
+      "tri_psnr": 39.53,
+      "tri_ssim": 0.9542,
+      "bayer_psnr": 42.78,
+      "bayer_ssim": 0.9598,
+      "delta_psnr": 3.24,
+      "time_s": 3.11
+    },
+    {
+      "image": "gray_ramp",
+      "side": 8,
+      "tri_psnr": 38.48,
+      "tri_ssim": 0.9378,
+      "bayer_psnr": 41.94,
+      "bayer_ssim": 0.9493,
+      "delta_psnr": 3.45,
+      "time_s": 3.1
+    },
+    {
+      "image": "siemens_star",
+      "side": 8,
+      "tri_psnr": 19.19,
+      "tri_ssim": 0.4943,
+      "bayer_psnr": 25.12,
+      "bayer_ssim": 0.8334,
+      "delta_psnr": 5.93,
+      "time_s": 3.02
+    },
+    {
+      "image": "real_proxy",
+      "side": 8,
+      "tri_psnr": 26.64,
+      "tri_ssim": 0.8858,
+      "bayer_psnr": 38.76,
+      "bayer_ssim": 0.95,
+      "delta_psnr": 12.12,
+      "time_s": 3.02
+    }
+  ],
+  "s12": [
+    {
+      "image": "edge_0",
+      "side": 12,
+      "tri_psnr": 27.4,
+      "tri_ssim": 0.9469,
+      "bayer_psnr": 38.74,
+      "bayer_ssim": 0.9518,
+      "delta_psnr": 11.34,
+      "time_s": 2.42
+    },
+    {
+      "image": "edge_45",
+      "side": 12,
+      "tri_psnr": 25.5,
+      "tri_ssim": 0.9413,
+      "bayer_psnr": 39.23,
+      "bayer_ssim": 0.952,
+      "delta_psnr": 13.73,
+      "time_s": 2.43
+    },
+    {
+      "image": "edge_90",
+      "side": 12,
+      "tri_psnr": 24.69,
+      "tri_ssim": 0.9356,
+      "bayer_psnr": 37.93,
+      "bayer_ssim": 0.9515,
+      "delta_psnr": 13.24,
+      "time_s": 2.47
+    },
+    {
+      "image": "edge_135",
+      "side": 12,
+      "tri_psnr": 25.27,
+      "tri_ssim": 0.9394,
+      "bayer_psnr": 39.11,
+      "bayer_ssim": 0.9521,
+      "delta_psnr": 13.84,
+      "time_s": 2.4
+    },
+    {
+      "image": "color_rb",
+      "side": 12,
+      "tri_psnr": 38.72,
+      "tri_ssim": 0.9527,
+      "bayer_psnr": 42.71,
+      "bayer_ssim": 0.9592,
+      "delta_psnr": 3.99,
+      "time_s": 2.42
+    },
+    {
+      "image": "gray_ramp",
+      "side": 12,
+      "tri_psnr": 37.01,
+      "tri_ssim": 0.9311,
+      "bayer_psnr": 41.9,
+      "bayer_ssim": 0.9492,
+      "delta_psnr": 4.89,
+      "time_s": 2.43
+    },
+    {
+      "image": "siemens_star",
+      "side": 12,
+      "tri_psnr": 18.99,
+      "tri_ssim": 0.4849,
+      "bayer_psnr": 25.12,
+      "bayer_ssim": 0.8332,
+      "delta_psnr": 6.13,
+      "time_s": 2.41
+    },
+    {
+      "image": "real_proxy",
+      "side": 12,
+      "tri_psnr": 24.86,
+      "tri_ssim": 0.8742,
+      "bayer_psnr": 38.77,
+      "bayer_ssim": 0.95,
+      "delta_psnr": 13.9,
+      "time_s": 2.44
+    }
+  ]
+}
