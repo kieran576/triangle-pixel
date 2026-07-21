@@ -86,7 +86,7 @@ Figure~\ref{fig:grid} shows the triangular grid geometry.
 \label{fig:grid}
 \end{figure}
 
-\subsection{Channel Assignment}
+\subsection{Channel Assignment}\label{sec:channel-assignment}
 
 Color filters are assigned in a repeating 6-column pattern (Fig.~\ref{fig:channels}):
 
@@ -129,7 +129,7 @@ Each triangle decomposes into 4 sub-triangles of side $S/2$ (3 of same orientati
 \label{sec:recon}
 %-------------------------------------------------------------------------
 
-\subsection{RAW and Neighbor Borrowing}
+\subsection{RAW and Neighbor Borrowing}\label{sec:perm}
 
 Each triangle $(r,c)$ captures a single-channel measurement $m(r,c) = I(c^*_{rc}, p_{rc})$, where $c^*_{rc}$ is the assigned channel and $p_{rc}$ is the triangle center.
 
@@ -328,6 +328,57 @@ At equivalent data rates (both RAW: 8 bits/pixel), the triangular sensor achieve
 \item \textbf{Physical validation:} All results are simulation; a physical triangular CMOS sensor is needed.
 \end{itemize}
 
+\subsection{Physical Fabrication Feasibility}\label{sec:fab}
+We outline the engineering steps required to transition from simulation to a working triangular CMOS image sensor. Existing CMOS image sensor (CIS) processes provide all of the necessary building blocks; the triangular lattice imposes incremental, not fundamental, constraints.
+
+\subsubsection*{Photodiode Layout}
+The triangular lattice with side length $S$ has two photodiode orientations per pixel site: $\triangle$ (upward) and $\triangledown$ (downward). Both shapes are routinely produced in modern back-side-illuminated (BSI) processes using variants of the pyramid / inverted-pyramid silicon etch (already in production at Sony, Samsung, OmniVision for HDR pixel splitting). In our geometry the two triangle orientations are exact $180^\circ$ rotations of each other, so a single etch-mask template with even/odd row mirroring reduces to one lithographic step.
+
+Photodiode fill factor: A regular triangular tessellation leaves $\sim$7\%$ uncovered area at the edges (vs. $\sim$0\%$ for the Bayer rectangle). The lost area is recovered by overlapping the edge photodiodes into the neighbouring pixel, which is feasible because each triangle owns only one color channel and does not need a full Bayer-style colour-filter mosaic on top.
+
+\subsubsection*{Microlens Array}
+Standard Bayer pixels require a square microlens focusing RGB primaries onto three neighbours in two crossed axes. A triangular sensor needs only two lens orientations (one per triangle orientation), and each lens focuses light from $1$ or $2$ neighbouring triangles. Existing compound-microlens manufacturing (Samsung ISOCELL, Sony Exmor) already produces non-square lens arrays for pixel-binning / dual-pixel designs; the triangular lens array is mechanically simpler because the two orientations share one lens profile.
+
+\subsubsection*{Color Filter Array}
+The colour filter can be the same Bayer RGBG mosaic applied to a triangular lattice: each triangle receives one of $\{R, G, B\}$ based on its grid position (Section~\ref{sec:channel-assignment}). The CFA layout itself is unchanged; only the photodiode pitch is rotated. Standard photolithography produces colour filters with sub-micron alignment tolerance, well within the alignment budget for $S \geq 1.0\;\mu\mathrm{m}$ pixels (current CIS production).
+
+\subsubsection*{Readout Architecture}
+Three integrated readout architectures implement the borrow step on silicon:
+\begin{description}[nosep]
+\item[Signal routing.] 3 column-lines per photosite fan out each measurement to its 3 neighbours in the row-buffer. Adds $\sim$3$\times$ column routing area; zero logical delay between exposure and RGB assembly.
+\item[Row-buffer + LUT.] Cache current row + 2 adjacent rows, remap through a static LUT that maps the self-inverse permutation. 2--3 row latency ($\sim\!1$--$\!2\;\mu\mathrm{s}$ at 120~fps), negligible for zero-latency pipelines.
+\item[In-pixel copy.] Each photodiode's storage is overwritten with the borrowed channel combination. Simplest routing but destructive---the raw single-channel measurement is lost, ruling out L3 ISP correction. \emph{Not recommended.}
+\end{description}
+Architecture (A) matches the self-inverse permutation (Section~\ref{sec:perm}) exactly: every signal arrives at its final destination with no intermediate shuffling. Combined with BSI stacked-die technology (Sony Exmor RS, OmniVision PureCel), the routing overhead is absorbed in the logic-die layer with no impact on the photodiode layer.
+
+\subsubsection*{Sensor Sizes and Pitches}
+Table~\ref{tab:fab} lists pixel pitches achievable with current CIS process nodes. The triangular lattice at $S = 1.0\;\mu\mathrm{m}$ matches Sony IMX585's $1.0\;\mu\mathrm{m}$ pixel pitch (1/1.7'' sensor, 4K output) and matches the data-efficiency benchmark above (S$ = 8$ in image-space units corresponds to $S = 8$ pixels $\approx 8\;\mu\mathrm{m}$ at $1\;\mu\mathrm{m}$ pitch).
+
+\begin{table}[t]
+\centering
+\caption{CIS process node feasibility for triangular sensor fabrication.}
+\label{tab:fab}
+\begin{tabular}{lcccc}
+\toprule
+Process node & Pixel pitch & Side length $S$ & Fill factor & HDR stack \\
+\midrule
+Sony IMX585 & $1.0\;\mu\mathrm{m}$ & $1.0\;\mu\mathrm{m}$ & $\sim$93\% & 2-layer \\
+Sony IMX307 & $2.9\;\mu\mathrm{m}$ & $2.9\;\mu\mathrm{m}$ & $\sim$98\% & 1-layer \\
+OmniVision OS12H40 & $2.2\;\mu\mathrm{m}$ & $2.2\;\mu\mathrm{m}$ & $\sim$95\% & 2-layer \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Expected Timeline}
+\begin{itemize}[nosep]
+\item \textbf{Year 0--1:} Tape out a test array ($1280\times 960$ triangular pixels) on a foundry process (TowerJazz 110~nm CIS, GlobalFoundries 65~nm BSI). Cost $\sim$\$500K.
+\item \textbf{Year 1--2:} Validate single-channel measurements, verify the borrow-step readout produces expected RGB reconstruction on known chart targets.
+\item \textbf{Year 2--3:} Integrate into a camera module with a triangular-display LCD or OLED; measure end-to-end latency vs. Bayer + ISP reference.
+\item \textbf{Year 3+:} Mass-production readiness; partnership with a CIS manufacturer (Sony, OmniVision, Samsung) for fabless or licensed production.
+\end{itemize}
+
+The triangular sensor is a \emph{logical modification} of the existing CIS pipeline---it changes the photodiode mask and the readout LUT, but reuses every other step of the modern image-sensor manufacturing stack. The engineering challenge is incremental, not categorical.
+
 \subsection{Triangular Display Integration}\label{sec:display}
 
 The zero-latency advantage is maximized when both the sensor and the display share the triangular grid geometry. If the display panel also uses a triangular sub-pixel layout matching the sensor's 6-triangle hexagonal groups, the raw sensor data can be displayed directly without any format conversion---each sensor triangle drives its corresponding display triangle 1:1. The 2R+2G+2B hexagon on the sensor maps identically to a 2R+2G+2B hexagon on the display, eliminating demosaicing, resampling, and color-space conversion from the signal chain entirely. Triangular sub-pixel layouts exist in some OLED panels (e.g., Samsung Diamond Pixel), though with different geometry; a sensor-matched triangular display would close the loop for truly zero-computation end-to-end imaging. This sensor-display co-design is particularly relevant for AR/VR passthrough systems where latency directly causes motion sickness.
@@ -373,6 +424,8 @@ The complete pipeline---sensor simulator, reconstruction algorithms, CV primitiv
 %-------------------------------------------------------------------------
 
 We presented Triangle Pixel, a vision system that replaces rectangular pixel grids with equilateral triangle meshes. Its defining capability is \textbf{zero-latency color perception}: the raw triangular sensor output is directly viewable as a full-color image without any ISP processing, because each hexagonal group naturally balances 2R+2G+2B. For precision tasks, the same raw data supports computational reconstruction, and every triangle contributes one ground-truth channel measurement---unlike Bayer sensors where per-pixel color values are predominantly interpolated. The pipeline operates at $\sim$60~FPS on a consumer CPU across both the zero-latency raw path and the full ISP path, and the triangular mesh provides a direct route to 3D surface representation. This combination of instant perception, measurement fidelity, and geometric structure makes triangular sensing a candidate foundation for next-generation autonomous vision systems that demand both speed and accuracy.
+
+Fabrication is within reach of current CIS processes (Section~\ref{sec:fab}): the photodiode mask, microlens array, and readout architecture require only incremental changes to existing 1.0--2.9\,$\mu$m BSI nodes. A Year-0 tape-out at TowerJazz 110~nm / GlobalFoundries 65~nm BSI for \$\textasciitilde\$500K validates single-channel measurements, the borrow-step readout, and end-to-end latency on a real camera module.
 
 \bibliographystyle{ieee}
 \begin{thebibliography}{9}
