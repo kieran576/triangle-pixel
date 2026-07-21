@@ -1,0 +1,24 @@
+[
+  {
+    "name": "static",
+    "n_frames": 100,
+    "side": 12,
+    "mode": "correct",
+    "iso": 100,
+    "psf_sigma": 0.5,
+    "frame_diff_mean": 0.0,
+    "frame_diff_p95": 0.0,
+    "frame_diff_max": 0.0
+  },
+  {
+    "name": "translating",
+    "n_frames": 50,
+    "side": 12,
+    "mode": "correct",
+    "iso": 100,
+    "psf_sigma": 0.5,
+    "frame_diff_mean": 0.432,
+    "frame_diff_p95": 0.735,
+    "frame_diff_max": 255.0
+  }
+]

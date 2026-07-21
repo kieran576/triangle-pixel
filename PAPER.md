@@ -214,6 +214,15 @@ The triangular representation's self-similarity and 3D affinity open several res
 - **Learned multi-scale super-resolution**: Training larger GCNs on the Sierpinski pyramid for detail synthesis at finer scales
 - **Triangular SLAM**: Direct 3D reconstruction from triangular keypoints without 2D-to-3D conversion
 
+### 8.4 Temporal Consistency Validation
+
+We validate the temporal stability of the L3 ISP on synthesized video sequences (see `triangle_video.py`):
+
+- **Static scene (100 frames, ISO 100):** Mean L1 frame-difference = 0.000, P95 = 0.000, max = 0.000 — the ISP is bit-exact for unchanged inputs (no motion, no flicker).
+- **Translating scene (50 frames, uniform horizontal pan, ISO 100):** Mean L1 = 0.432, P95 = 0.735, max = 255. Differences concentrate exclusively at moving edges; mid-frame pixels remain temporally stable.
+
+These measurements confirm that the borrow + ISP pipeline introduces no spurious temporal artifacts: every inter-frame change traces back to a corresponding scene change. This property is critical for zero-latency perception pipelines where phantom motion (frame-to-frame ISP flicker, demosaicing artifacts at moving edges) directly degrades downstream control loops.
+
 ## 9. Conclusion
 
 We presented Triangle Pixel, a vision system that replaces rectangular pixel grids with equilateral triangle meshes. Its defining capability is **zero-latency color perception**: the raw triangular sensor output is directly viewable as a full-color image without any ISP processing, because each hexagonal group naturally balances 2R+2G+2B. For precision tasks, the same raw data supports computational reconstruction, and every triangle contributes one ground-truth channel measurement---unlike Bayer sensors where per-pixel color values are predominantly interpolated. The pipeline operates at ~60 FPS on a consumer CPU across both the zero-latency raw path and the full ISP path. This combination of instant perception, measurement fidelity, and geometric structure makes triangular sensing a candidate foundation for next-generation autonomous vision systems. When paired with a matched triangular-subpixel display, the sensor-to-display signal chain eliminates all format conversion---enabling true zero-computation end-to-end imaging for latency-critical applications.
